@@ -3,6 +3,7 @@ import { useApp } from '../store';
 import { go } from '../router';
 import { Avatar, Empty, Fab, Icon, PageHead, Segmented } from '../components/ui';
 import PlayerForm from '../components/PlayerForm';
+import { FutCard } from '../components/club';
 import { byNumber, playerStats, POS_ORDER, POSITIONS, STATUS } from '../utils';
 import type { Position } from '../types';
 
@@ -52,33 +53,10 @@ export default function Squad({ manager }: { manager: boolean }) {
           <h2 className="group-title">
             {POSITIONS[g.pos]} <span>{g.players.length}</span>
           </h2>
-          <div className="player-grid">
-            {g.players.map((p) => {
-              const s = playerStats(state, p.id);
-              return (
-                <button key={p.id} className="player-card" onClick={() => go('squad/' + p.id)}>
-                  <div className="player-card-photo">
-                    <Avatar player={p} size={64} />
-                    <span className="status-dot" style={{ background: STATUS[p.status].color }} title={STATUS[p.status].label} />
-                  </div>
-                  <div className="player-card-info">
-                    <strong>
-                      {p.name} {p.captain && <span className="captain" title="קפטן">ק</span>}
-                    </strong>
-                    <small>
-                      #{p.number ?? '–'} · {POSITIONS[p.position]}
-                      {p.status !== 'fit' && <span style={{ color: STATUS[p.status].color }}> · {STATUS[p.status].label}</span>}
-                    </small>
-                    <div className="mini-stats">
-                      <span title="הופעות">👕 {s.apps}</span>
-                      <span title="שערים">⚽ {s.goals}</span>
-                      <span title="בישולים">🅰️ {s.assists}</span>
-                    </div>
-                  </div>
-                  <Icon name="chevron" size={18} className="muted" />
-                </button>
-              );
-            })}
+          <div className="fut-grid">
+            {g.players.map((p) => (
+              <FutCard key={p.id} player={p} state={state} onClick={() => go('squad/' + p.id)} />
+            ))}
           </div>
         </section>
       ))}

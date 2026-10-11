@@ -1,9 +1,10 @@
 import { useApp } from '../store';
+import { Countdown, TeamBadge } from '../components/club';
 import { TeamBanner } from '../components/ui';
 import { go } from '../router';
 import { Avatar, Icon, RatingBadge, Stat } from '../components/ui';
 import { EVENT_TYPES, MatchCard, RsvpButtons, upcomingItems } from '../components/cards';
-import { firstName, playerStats, relDay, STATUS } from '../utils';
+import { firstName, playerStats, relDay, resultOf, score, shortDate, STATUS } from '../utils';
 
 export default function PlayerHome({ playerId }: { playerId: string }) {
   const state = useApp();
@@ -64,10 +65,17 @@ export default function PlayerHome({ playerId }: { playerId: string }) {
             </span>
           </div>
           <div className="hero-vs">
-            <span>{nextMatch.match.home ? state.settings.teamName : nextMatch.match.opponent}</span>
-            <em>נגד</em>
-            <span>{nextMatch.match.home ? nextMatch.match.opponent : state.settings.teamName}</span>
+            <span className="hero-side">
+              <TeamBadge name={nextMatch.match.home ? state.settings.teamName : nextMatch.match.opponent} ours={nextMatch.match.home} logo={state.settings.logo} size={46} />
+              {nextMatch.match.home ? state.settings.teamName : nextMatch.match.opponent}
+            </span>
+            <em>VS</em>
+            <span className="hero-side">
+              <TeamBadge name={nextMatch.match.home ? nextMatch.match.opponent : state.settings.teamName} ours={!nextMatch.match.home} logo={state.settings.logo} size={46} />
+              {nextMatch.match.home ? nextMatch.match.opponent : state.settings.teamName}
+            </span>
           </div>
+          <Countdown date={nextMatch.date} time={nextMatch.time} />
           {lineupNote && <div className={'lineup-note tone-' + lineupNote.tone}>{lineupNote.text}</div>}
           {nextMatch.match.lineupPublished && (
             <div className="hero-bottom">
@@ -77,6 +85,33 @@ export default function PlayerHome({ playerId }: { playerId: string }) {
             </div>
           )}
         </button>
+      )}
+
+
+      {state.matches.some((m) => m.status === 'finished') && (
+        <section className="results-strip">
+          <h2 className="group-title">תוצאות אחרונות</h2>
+          <div className="results-scroll">
+            {state.matches
+              .filter((m) => m.status === 'finished')
+              .sort((a, b) => b.date.localeCompare(a.date))
+              .slice(0, 8)
+              .map((m) => {
+                const sc = score(m);
+                const r = resultOf(m)!;
+                return (
+                  <button key={m.id} className={'result-tile res-border-' + r} onClick={() => go('matches/' + m.id)}>
+                    <small>{m.competition} · {shortDate(m.date)}</small>
+                    <span className="rt-row">
+                      <TeamBadge name={m.opponent} size={30} />
+                      <b>{m.opponent}</b>
+                    </span>
+                    <span className={'rt-score res-' + r}>{sc.us}:{sc.them}</span>
+                  </button>
+                );
+              })}
+          </div>
+        </section>
       )}
 
       <h2 className="group-title">העונה שלי</h2>

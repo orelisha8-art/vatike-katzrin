@@ -1,9 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { getState, update, useApp } from '../store';
 import { back, go } from '../router';
-import { Avatar, confirmDelete, Empty, Icon, Modal, RatingBadge, Segmented } from '../components/ui';
+import { Avatar, confirmDelete, Empty, Field, Icon, Modal, RatingBadge, Segmented } from '../components/ui';
 import { RsvpButtons, rsvpCounts, setRsvp } from '../components/cards';
 import Pitch from '../components/Pitch';
+import { Countdown, Scorers, TeamBadge } from '../components/club';
 import { MatchForm } from './Matches';
 import type { AppState, Match, MatchEvent, MatchEventType, Player, Rsvp } from '../types';
 import {
@@ -16,6 +17,7 @@ import {
   minutesPlayed,
   onPitch,
   POSITIONS,
+  resultOf,
   score,
   shareWhatsApp,
   STATUS,
@@ -78,10 +80,13 @@ export default function MatchDetail({ id, manager, meId }: { id: string; manager
       </div>
 
       <div className={'scoreboard' + (m.status === 'live' ? ' is-live' : '')}>
-        <div className="sb-team">{m.home ? team : m.opponent}</div>
+        <div className="sb-team">
+          <TeamBadge name={m.home ? team : m.opponent} ours={m.home} logo={state.settings.logo} />
+          <span>{m.home ? team : m.opponent}</span>
+        </div>
         <div className="sb-center">
           {m.status === 'scheduled' ? (
-            <div className="sb-time">{m.time || "נגד"}</div>
+            <div className="sb-time">{m.time || 'נגד'}</div>
           ) : (
             <div className="sb-score">{m.home ? `${s.us} - ${s.them}` : `${s.them} - ${s.us}`}</div>
           )}
@@ -91,13 +96,18 @@ export default function MatchDetail({ id, manager, meId }: { id: string; manager
                 <span className="live-dot" /> {m.live?.paused ? 'מחצית' : `דקה ${Math.min(liveMinute(m), m.duration + 10)}׳`}
               </>
             ) : m.status === 'finished' ? (
-              'הסתיים'
+              <span className={'sb-result res-' + (resultOf(m) ?? 'D')}>{{ W: 'ניצחון', D: 'תיקו', L: 'הפסד' }[resultOf(m) ?? 'D']}</span>
             ) : (
               m.venue
             )}
           </div>
         </div>
-        <div className="sb-team">{m.home ? m.opponent : team}</div>
+        <div className="sb-team">
+          <TeamBadge name={m.home ? m.opponent : team} ours={!m.home} logo={state.settings.logo} />
+          <span>{m.home ? m.opponent : team}</span>
+        </div>
+        {m.status !== 'scheduled' && <Scorers m={m} state={state} />}
+        {m.status === 'scheduled' && <div className="sb-countdown"><Countdown date={m.date} time={m.time} /></div>}
       </div>
 
       <div className="tabs-scroll">
@@ -498,6 +508,7 @@ const EVENT_META: Record<MatchEventType, { emoji: string; label: string }> = {
 
 function LiveTab({ m, manager, state }: { m: Match; manager: boolean; state: AppState }) {
   const [entry, setEntry] = useState<MatchEventType | null>(null);
+  const [editing, setEditing] = useState<MatchEvent | null>(null);
   // דקה 0 = לא ידועה; בשוויון — לפי סדר ההזנה
   const events = m.events.map((e, i) => ({ e, i })).sort((a, b) => b.e.minute - a.e.minute || b.i - a.i).map((x) => x.e);
   const half = m.duration / 2;
@@ -578,8 +589,8 @@ function LiveTab({ m, manager, state }: { m: Match; manager: boolean; state: App
                       <EventText e={e} state={state} />
                     </span>
                     {manager && (
-                      <button className="icon-btn sm" onClick={() => window.confirm('למחוק את האירוע?') && patch(m.id, (x) => (x.events = x.events.filter((y) => y.id !== e.id)))} aria-label="מחיקה">
-                        <Icon name="trash" size={16} />
+                      <button className="icon-btn sm" onClick={() => setEditing(e)} aria-label="עריכה">
+                        <Icon name="edit" size={16} />
                       </button>
                     )}
                   </div>
@@ -591,7 +602,99 @@ function LiveTab({ m, manager, state }: { m: Match; manager: boolean; state: App
       </section>
 
       {entry && <EventEntry m={m} type={entry} state={state} onClose={() => setEntry(null)} />}
+      {editing && <EventEdit m={m} ev={editing} state={state} onClose={() => setEditing(null)} />}
     </div>
+  );
+}
+
+/** עריכת אירוע קיים: החלפת כובש/מבשל/שחקן, דקה, פנדל, טקסט — או מחיקה */
+function EventEdit({ m, ev, state, onClose }: { m: Match; ev: MatchEvent; state: AppState; onClose: () => void }) {
+  const [x, setX] = useState<MatchEvent>({ ...ev });
+  const players = state.players.filter((p) => p.active || [ev.playerId, ev.assistId, ev.inId, ev.outId].includes(p.id)).sort(byNumber);
+  const set = (k: keyof MatchEvent, v: unknown) => setX((cur) => ({ ...cur, [k]: v === '' ? undefined : v }));
+  const select = (label: string, k: 'playerId' | 'assistId' | 'inId' | 'outId', empty?: string) => (
+    <Field label={label}>
+      <select className="input" value={(x[k] as string) ?? ''} onChange={(e) => set(k, e.target.value)}>
+        {empty !== undefined && <option value="">{empty}</option>}
+        {players.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.number != null ? p.number + ' · ' : ''}
+            {p.name}
+          </option>
+        ))}
+      </select>
+    </Field>
+  );
+  const save = () => {
+    if (x.type === 'goal' && x.assistId && x.assistId === x.playerId) return alert('הכובש והמבשל לא יכולים להיות אותו שחקן');
+    if (x.type === 'note' && !x.text?.trim()) return alert('צריך לכתוב מה קרה');
+    patch(m.id, (mm) => {
+      const i = mm.events.findIndex((y) => y.id === ev.id);
+      if (i >= 0) mm.events[i] = x;
+    });
+    onClose();
+  };
+  const remove = () => {
+    if (!window.confirm('למחוק את האירוע?')) return;
+    patch(m.id, (mm) => (mm.events = mm.events.filter((y) => y.id !== ev.id)));
+    onClose();
+  };
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={`עריכת ${EVENT_META[x.type].label} ${EVENT_META[x.type].emoji}`}
+      footer={
+        <>
+          <button className="btn btn-primary" onClick={save}>
+            שמירה
+          </button>
+          <button className="btn btn-ghost danger" onClick={remove}>
+            <Icon name="trash" size={16} /> מחיקה
+          </button>
+        </>
+      }
+    >
+      {(x.type === 'goal' || x.type === 'opp_goal') && (
+        <Field label="סוג">
+          <Segmented
+            value={x.type}
+            onChange={(v) => setX((cur) => ({ ...cur, type: v, ...(v === 'opp_goal' ? { playerId: undefined, assistId: undefined, penalty: undefined } : {}) }))}
+            options={[
+              { value: 'goal', label: '⚽ גול שלנו' },
+              { value: 'opp_goal', label: '🥅 גול יריבה' },
+            ]}
+          />
+        </Field>
+      )}
+      {x.type === 'goal' && (
+        <>
+          {select('מי כבש', 'playerId', 'גול עצמי של היריבה')}
+          {select('מי בישל', 'assistId', 'ללא בישול')}
+          <label className="check">
+            <input type="checkbox" checked={!!x.penalty} onChange={(e) => set('penalty', e.target.checked || undefined)} /> פנדל
+          </label>
+        </>
+      )}
+      {x.type === 'sub' && (
+        <>
+          {select('יצא ▼', 'outId')}
+          {select('נכנס ▲', 'inId')}
+        </>
+      )}
+      {(x.type === 'yellow' || x.type === 'red') && select('שחקן', 'playerId')}
+      {x.type === 'note' && (
+        <>
+          <Field label="מה קרה">
+            <textarea className="input" rows={3} value={x.text ?? ''} onChange={(e) => set('text', e.target.value)} />
+          </Field>
+          {select('שחקן קשור', 'playerId', 'ללא')}
+        </>
+      )}
+      <Field label="דקה" hint="0 או ריק = לא ידוע">
+        <input className="input" inputMode="numeric" value={x.minute || ''} onChange={(e) => setX((cur) => ({ ...cur, minute: Number(e.target.value.replace(/\D/g, '')) || 0 }))} />
+      </Field>
+    </Modal>
   );
 }
 

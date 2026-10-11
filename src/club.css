@@ -1,0 +1,515 @@
+/* =====================================================================
+   רכיבי "מועדון": סמלים, ספירה לאחור, קלפי שחקנים, מרכז משחק, פודיום
+   ===================================================================== */
+
+/* כניסה חלקה לכל דף */
+.page {
+  animation: page-in 0.28s ease-out;
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ---------- סמל קבוצה ---------- */
+.crest {
+  flex: none;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+}
+.crest-shield {
+  fill: #2b2b2b;
+}
+.crest-rim {
+  stroke: #555;
+  stroke-width: 4;
+}
+.crest-band {
+  fill: #3a3a3a;
+}
+.crest-text {
+  fill: #fff;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 30px;
+}
+.crest.ours .crest-shield {
+  fill: var(--brand);
+}
+.crest.ours .crest-rim {
+  stroke: var(--ink);
+}
+.crest.ours .crest-band {
+  fill: var(--ink);
+}
+.crest.ours .crest-text {
+  fill: var(--ink);
+}
+.crest-img {
+  border-radius: 14px;
+  object-fit: cover;
+  flex: none;
+}
+
+/* ---------- ספירה לאחור ---------- */
+.countdown {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0 4px;
+}
+.cd-box {
+  min-width: 62px;
+  padding: 8px 6px 6px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  backdrop-filter: blur(4px);
+}
+.cd-box b {
+  font-family: var(--display);
+  font-size: 1.7rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.cd-box small {
+  font-size: 0.7rem;
+  color: #bdbdb5;
+  margin-top: 3px;
+}
+.countdown.live-now {
+  font-family: var(--display);
+  font-weight: 900;
+  color: var(--brand);
+  font-size: 1.2rem;
+}
+
+/* ---------- המשחק הבא בבית ---------- */
+.hero-vs {
+  align-items: flex-start;
+}
+.hero-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.15rem;
+}
+.hero-vs em {
+  align-self: center;
+  font-size: 1.3rem;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- מרכז משחק ---------- */
+.scoreboard {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 14px 18px;
+}
+.sb-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+.sb-score {
+  font-size: 3rem;
+  direction: ltr;
+}
+.sb-result {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 99px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  color: #fff;
+}
+.sb-result.res-W {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+.sb-scorers,
+.sb-countdown {
+  grid-column: 1 / -1;
+}
+.sb-scorers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+  font-size: 0.85rem;
+  color: #e6e6de;
+}
+.sb-scorers small {
+  color: var(--brand);
+  font-weight: 700;
+}
+.sb-countdown .countdown {
+  margin: 4px 0 0;
+}
+
+/* ---------- קלפי שחקנים ---------- */
+.fut-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (min-width: 560px) {
+  .fut-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (min-width: 900px) {
+  .fut-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+}
+.fut {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 10px 10px;
+  border-radius: 18px 18px 26px 26px;
+  color: #fff;
+  background:
+    radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--brand) 26%, transparent), transparent 60%),
+    var(--stripes),
+    linear-gradient(170deg, #222, #0b0b0b 65%);
+  border: 1.5px solid #2e2e2e;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s;
+  text-align: center;
+  isolation: isolate;
+}
+.fut:hover {
+  transform: translateY(-3px);
+  border-color: var(--brand);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28), 0 0 0 1px var(--brand);
+}
+.fut:active {
+  transform: scale(0.98);
+}
+.fut::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.08) 45%, transparent 55%);
+  transform: translateX(-120%);
+  transition: transform 0.6s ease;
+  z-index: -1;
+}
+.fut:hover::after {
+  transform: translateX(120%);
+}
+.fut.captain-card {
+  border-color: var(--brand);
+}
+.fut-num {
+  position: absolute;
+  top: -10px;
+  left: 6px;
+  font-family: var(--display);
+  font-weight: 900;
+  font-style: italic;
+  font-size: 4.6rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--brand) 22%, transparent);
+  z-index: -1;
+  pointer-events: none;
+}
+.fut-top {
+  align-self: stretch;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.fut-pos {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--brand);
+  color: var(--on-brand);
+}
+.fut-c {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--on-brand);
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 0.75rem;
+}
+.fut-photo .avatar {
+  box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px var(--brand), 0 10px 20px rgba(0, 0, 0, 0.45);
+}
+.fut-photo .avatar-fallback {
+  background: linear-gradient(160deg, #2a2a2a, #111);
+  color: var(--brand);
+  font-size: 1.8rem !important;
+}
+.fut-name {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 1rem;
+  line-height: 1.15;
+  margin-top: 4px;
+  min-height: 2.3em;
+  display: flex;
+  align-items: center;
+}
+.fut-stats {
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 7px;
+}
+.fut-stats span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.fut-stats span + span {
+  border-inline-start: 1px solid rgba(255, 255, 255, 0.1);
+}
+.fut-stats b {
+  font-family: var(--display);
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--brand);
+  line-height: 1.1;
+}
+.fut-stats small {
+  font-size: 0.62rem;
+  color: #a8a8a0;
+}
+.fut.out {
+  filter: grayscale(0.55);
+}
+.fut-status {
+  position: absolute;
+  top: 46px;
+  right: -30px;
+  transform: rotate(35deg);
+  padding: 2px 34px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* ---------- פרופיל שחקן ---------- */
+.profile-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding: 22px 18px 0;
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(80% 90% at 85% 10%, color-mix(in srgb, var(--brand) 24%, transparent), transparent 60%),
+    var(--stripes),
+    linear-gradient(165deg, #1e1e1e, #0a0a0a 70%);
+  border-bottom: 5px solid var(--brand);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+}
+.profile-watermark {
+  position: absolute;
+  left: 8px;
+  top: -24px;
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 9.5rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--brand) 16%, transparent);
+  z-index: -1;
+  pointer-events: none;
+}
+.profile-info h1 {
+  color: #fff;
+  font-size: 1.9rem;
+  background: none;
+}
+.profile-info p {
+  color: #c9c9c1;
+}
+.profile-hero .btn:not(.btn-wa) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+.profile-strip {
+  flex-basis: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  margin: 14px -18px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
+}
+.profile-strip span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px;
+}
+.profile-strip span + span {
+  border-inline-start: 1px solid rgba(255, 255, 255, 0.08);
+}
+.profile-strip b {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 1.6rem;
+  color: var(--brand);
+  line-height: 1.1;
+}
+.profile-strip small {
+  font-size: 0.72rem;
+  color: #b4b4ac;
+}
+
+/* ---------- תוצאות אחרונות ---------- */
+.results-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.results-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 2px 16px 8px;
+  margin-inline: -16px;
+  scrollbar-width: none;
+}
+.result-tile {
+  flex: none;
+  width: 150px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 4px solid #8a958e;
+  box-shadow: var(--shadow);
+}
+.result-tile small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.res-border-W {
+  border-top-color: var(--brand);
+}
+.res-border-L {
+  border-top-color: var(--bad);
+}
+.rt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rt-row b {
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rt-score {
+  align-self: flex-start;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 1.25rem;
+  padding: 0 10px;
+  border-radius: 8px;
+  direction: ltr;
+}
+.rt-score.res-W {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+/* ---------- פודיום ---------- */
+.podium {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  align-items: end;
+  gap: 8px;
+  padding-top: 30px;
+}
+.podium-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  min-width: 0;
+}
+.podium-step strong {
+  font-size: 0.85rem;
+  line-height: 1.2;
+}
+.podium-avatar {
+  position: relative;
+}
+.podium-avatar .avatar {
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--border);
+}
+.place-1 .podium-avatar .avatar {
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--brand), 0 10px 24px color-mix(in srgb, var(--brand) 35%, transparent);
+}
+.crown {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-8deg);
+  font-size: 1.4rem;
+}
+.podium-val {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 1.3rem;
+}
+.podium-block {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  border-radius: 12px 12px 0 0;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 1.6rem;
+  color: #fff;
+  background: var(--stripes), linear-gradient(170deg, #2a2a2a, #0d0d0d);
+}
+.place-1 .podium-block {
+  height: 86px;
+  background: var(--stripes), var(--brand);
+  color: var(--on-brand);
+}
+.place-2 .podium-block {
+  height: 62px;
+}
+.place-3 .podium-block {
+  height: 46px;
+}

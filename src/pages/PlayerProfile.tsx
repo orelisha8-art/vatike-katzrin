@@ -48,8 +48,9 @@ export default function PlayerProfile({ id, manager, meId }: { id: string; manag
       )} />
 
       <div className="profile-hero">
+        {p.number != null && <span className="profile-watermark">{p.number}</span>}
         <div className="profile-photo">
-          <Avatar player={p} size={112} />
+          <Avatar photo={p.photo} name={p.name} size={112} />
           {p.number != null && <span className="profile-number">{p.number}</span>}
         </div>
         <div className="profile-info">
@@ -75,6 +76,26 @@ export default function PlayerProfile({ id, manager, meId }: { id: string; manag
                 וואטסאפ
               </a>
             </div>
+          )}
+        </div>
+        <div className="profile-strip">
+          <span>
+            <b>{s.apps}</b>
+            <small>הופעות</small>
+          </span>
+          <span>
+            <b>{s.goals}</b>
+            <small>שערים</small>
+          </span>
+          <span>
+            <b>{s.assists}</b>
+            <small>בישולים</small>
+          </span>
+          {showRatings && (
+            <span>
+              <b>{s.avgRating ? s.avgRating.toFixed(1) : '–'}</b>
+              <small>ציון</small>
+            </span>
           )}
         </div>
       </div>

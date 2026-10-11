@@ -60,6 +60,25 @@ export default function Stats() {
       <div className="tabs-scroll">
         <Segmented value={col} onChange={setCol} options={options} />
       </div>
+      {sorted.length > 0 && (
+        <div className="podium">
+          {[sorted[1], sorted[0], sorted[2]].map((r, i) =>
+            r ? (
+              <button key={r.p.id} className={'podium-step place-' + [2, 1, 3][i]} onClick={() => go('squad/' + r.p.id)}>
+                <span className="podium-avatar">
+                  <Avatar player={r.p} size={[2, 1, 3][i] === 1 ? 76 : 60} />
+                  {[2, 1, 3][i] === 1 && <span className="crown">👑</span>}
+                </span>
+                <strong>{r.p.name}</strong>
+                <span className="podium-val">{display(r)}</span>
+                <span className="podium-block">{[2, 1, 3][i]}</span>
+              </button>
+            ) : (
+              <span key={i} />
+            ),
+          )}
+        </div>
+      )}
       <section className="card">
         {sorted.length === 0 ? (
           <p className="muted">אין עדיין נתונים</p>
