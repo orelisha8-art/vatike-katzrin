@@ -1872,7 +1872,7 @@ button.slot:active .slot-empty {
   align-items: center;
   gap: 10px;
 }
-.rating-player > div {
+.rating-player > div:not(.avatar) {
   flex: 1;
   min-width: 0;
   display: flex;

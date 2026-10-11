@@ -784,7 +784,7 @@ function RatingsTab({ m, manager, state }: { m: Match; manager: boolean; state: 
                 <div>
                   <strong>{p.name}</strong>
                   <small>
-                    {mins}׳ {startersSet.has(p.id) ? '' : '(מחליף)'} {'⚽'.repeat(goals)}
+                    {m.slots.some(Boolean) ? (startersSet.has(p.id) ? mins + '׳ ' : mins + '׳ (מחליף) ') : ''}{'⚽'.repeat(goals)}
                     {'🅰️'.repeat(assists)}
                     {cards.map((c) => (c.type === 'red' ? '🟥' : '🟨')).join('')}
                   </small>
