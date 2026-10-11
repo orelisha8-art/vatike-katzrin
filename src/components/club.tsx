@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { AppState, Match, Player } from '../types';
 import { daysBetween, initials, playerStats, POSITIONS, STATUS, todayISO } from '../utils';
-import { Avatar } from './ui';
+import { Avatar, Icon } from './ui';
 
 /** סמל קבוצה בצורת מגן — שלנו צהוב, יריבה כהה */
 export function TeamBadge({ name, ours, logo, size = 56 }: { name: string; ours?: boolean; logo?: string; size?: number }) {
@@ -111,7 +111,20 @@ export function Scorers({ m, state }: { m: Match; state: AppState }) {
 }
 
 /** קישור חיצוני בטוח (רק http/https) */
-const safeUrl = (u?: string) => (u && /^https?:\/\//i.test(u.trim()) ? u.trim() : undefined);
+/** משלים https לקישור שהודבק בלי פרוטוקול; מחזיר רק קישורי http/https */
+export const normalizeUrl = (u?: string) => {
+  const v = u?.trim();
+  if (!v) return undefined;
+  if (/^https?:\/\//i.test(v)) return v;
+  if (/^[a-z0-9.-]+\.[a-z]{2,}(\/|$)/i.test(v)) return 'https://' + v;
+  return undefined;
+};
+const safeUrl = normalizeUrl;
+/** קואורדינטות מתוך קישור מיקום (lat,lng) */
+const coordsOf = (u?: string) => {
+  const m = u?.match(/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/);
+  return m ? { lat: m[1], lng: m[2] } : undefined;
+};
 
 /** כפתורי ניווט: וייז וגוגל מפות — לפי קישור שהודבק, או לפי שם המקום */
 export function NavButtons({ place, link, compact }: { place?: string; link?: string; compact?: boolean }) {
@@ -120,8 +133,9 @@ export function NavButtons({ place, link, compact }: { place?: string; link?: st
   if (!url && !q) return null;
   const isWaze = url && /waze\.com/i.test(url);
   const isGoogle = url && /google\.[a-z.]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps/i.test(url);
-  const waze = isWaze ? url : q ? 'https://waze.com/ul?q=' + encodeURIComponent(q) + '&navigate=yes' : url;
-  const google = isGoogle ? url : q ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) : url;
+  const c = coordsOf(url);
+  const waze = isWaze ? url : c ? `https://waze.com/ul?ll=${c.lat},${c.lng}&navigate=yes` : q ? 'https://waze.com/ul?q=' + encodeURIComponent(q) + '&navigate=yes' : url;
+  const google = isGoogle ? url : c ? `https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}` : q ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) : url;
   return (
     <div className={'nav-buttons' + (compact ? ' compact' : '')} onClick={(e) => e.stopPropagation()}>
       <a className="nav-btn waze" href={waze} target="_blank" rel="noreferrer">
@@ -152,7 +166,13 @@ export function StaffCard({ state }: { state: AppState }) {
       <div className="sh-head">
         <span className="sh-label">{head.role.includes('מאמן') ? 'המאמן' : head.role}</span>
         <div className="sh-coach">
-          <Avatar photo={photoOf(head)} name={head.name} size={64} />
+          {photoOf(head) ? (
+            <Avatar photo={photoOf(head)} name={head.name} size={64} />
+          ) : (
+            <span className="sh-icon big">
+              <Icon name="whistle" size={30} />
+            </span>
+          )}
           <div>
             <strong>{head.name}</strong>
             <small>{head.role}</small>
@@ -163,9 +183,15 @@ export function StaffCard({ state }: { state: AppState }) {
         <div className="sh-rest">
           <span className="sh-label">הצוות המקצועי</span>
           <div className="sh-list">
-            {[head, ...rest].map((s) => (
+            {rest.map((s) => (
               <span key={s.id} className="sh-person">
-                <Avatar photo={photoOf(s)} name={s.name} size={34} />
+                {photoOf(s) ? (
+                  <Avatar photo={photoOf(s)} name={s.name} size={34} />
+                ) : (
+                  <span className="sh-icon">
+                    <Icon name="clipboard" size={18} />
+                  </span>
+                )}
                 <span>
                   <b>{s.name}</b>
                   <small>{s.role}</small>
@@ -176,5 +202,47 @@ export function StaffCard({ state }: { state: AppState }) {
         </div>
       )}
     </section>
+  );
+}
+
+/** שדה מיקום: הדבקת קישור מוויז/גוגל או "המיקום הנוכחי שלי" */
+export function LocationField({ value, onChange, place }: { value?: string; onChange: (v?: string) => void; place?: string }) {
+  const [busy, setBusy] = useState(false);
+  const here = () => {
+    if (!navigator.geolocation) return alert('הדפדפן לא תומך במיקום');
+    setBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setBusy(false);
+        onChange(`https://www.google.com/maps/search/?api=1&query=${pos.coords.latitude.toFixed(6)},${pos.coords.longitude.toFixed(6)}`);
+      },
+      () => {
+        setBusy(false);
+        alert('לא הצלחנו לקבל מיקום. צריך לאשר גישה למיקום בדפדפן.');
+      },
+      { enableHighAccuracy: true, timeout: 15000 },
+    );
+  };
+  const bad = !!value && !normalizeUrl(value);
+  return (
+    <div className="location-field">
+      <span className="field-label">📍 מיקום המגרש (לניווט)</span>
+      <div className="quick-add">
+        <input className="input" dir="ltr" inputMode="url" value={value ?? ''} onChange={(e) => onChange(e.target.value.trim() || undefined)} placeholder="הדביקו קישור מוויז / גוגל מפות" />
+        {value && (
+          <button type="button" className="btn btn-ghost" onClick={() => onChange(undefined)} aria-label="ניקוי">
+            ✕
+          </button>
+        )}
+      </div>
+      <div className="btn-row">
+        <button type="button" className="btn btn-sm" onClick={here} disabled={busy}>
+          {busy ? 'מאתר…' : '📍 המיקום הנוכחי שלי'}
+        </button>
+        <span className="muted small">או: בוויז ← "שיתוף" ← העתקת קישור, והדבקה כאן</span>
+      </div>
+      {bad && <p className="error-text small">הקישור לא תקין</p>}
+      <NavButtons place={place} link={normalizeUrl(value)} />
+    </div>
   );
 }

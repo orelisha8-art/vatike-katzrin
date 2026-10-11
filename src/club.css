@@ -798,3 +798,37 @@
   color: var(--muted);
   font-size: 0.75rem;
 }
+
+.sh-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--ink);
+  color: var(--brand);
+}
+.sh-icon.big {
+  width: 64px;
+  height: 64px;
+  background: var(--brand);
+  color: var(--on-brand);
+  box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px var(--brand);
+}
+.location-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px dashed var(--border);
+}
+.location-field .quick-add {
+  margin: 4px 0 0;
+}
+.location-field .btn-row {
+  margin-top: 4px;
+}

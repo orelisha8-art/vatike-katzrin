@@ -3,7 +3,7 @@ import { update, useApp } from '../store';
 import { go } from '../router';
 import { Empty, Fab, Field, Icon, Modal, PageHead, Segmented } from '../components/ui';
 import { FormGuide, MatchCard } from '../components/cards';
-import { NavButtons } from '../components/club';
+import { LocationField, normalizeUrl } from '../components/club';
 import type { Match } from '../types';
 import { countedScore, score, todayISO, uid } from '../utils';
 
@@ -72,6 +72,8 @@ export function MatchForm({ match, onClose, onSaved }: { match?: Match; onClose:
 
   const save = () => {
     if (!m.opponent.trim()) return alert('מי היריבה?');
+    if (m.mapUrl && !normalizeUrl(m.mapUrl)) return alert('קישור המיקום לא תקין');
+    m.mapUrl = normalizeUrl(m.mapUrl);
     update((s) => {
       const i = s.matches.findIndex((x) => x.id === m.id);
       if (i >= 0) s.matches[i] = m;
@@ -185,10 +187,7 @@ export function MatchForm({ match, onClose, onSaved }: { match?: Match; onClose:
       <Field label="מגרש / כתובת">
         <input className="input" value={m.venue ?? ''} onChange={(e) => set('venue', e.target.value)} placeholder="למשל: מגרש עירוני טייבה" />
       </Field>
-      <Field label="קישור למיקום (לא חובה)" hint="העתיקו קישור 'שיתוף' מוויז או מגוגל מפות להגעה מדויקת. בלי קישור — הניווט יחפש לפי שם המגרש.">
-        <input className="input" dir="ltr" inputMode="url" value={m.mapUrl ?? ''} onChange={(e) => set('mapUrl', e.target.value.trim() || undefined)} placeholder="https://waze.com/ul/…" />
-      </Field>
-      <NavButtons place={m.venue} link={m.mapUrl} />
+      <LocationField value={m.mapUrl} onChange={(v) => set('mapUrl', v)} place={m.venue} />
       <Field label="הערות">
         <textarea className="input" rows={2} value={m.notes ?? ''} onChange={(e) => set('notes', e.target.value)} placeholder="שעת התכנסות, הסעה, מדים…" />
       </Field>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { update, useApp } from '../store';
 import { go } from '../router';
 import { Avatar, confirmDelete, Empty, Fab, Field, Icon, Modal, PageHead, Segmented } from '../components/ui';
-import { NavButtons } from '../components/club';
+import { LocationField, NavButtons, normalizeUrl } from '../components/club';
 import { EVENT_TYPES, RsvpButtons, RsvpMini, scheduleItems, setRsvp, type ScheduleItem } from '../components/cards';
 import type { EventType, Rsvp, TeamEvent } from '../types';
 import { addDays, byNumber, fullDate, relDay, shareWhatsApp, todayISO, uid , hhmm } from '../utils';
@@ -224,6 +224,8 @@ function EventForm({ event, onClose }: { event?: TeamEvent; onClose: () => void 
 
   const save = () => {
     if (!e.title.trim()) return alert('צריך כותרת');
+    if (e.mapUrl && !normalizeUrl(e.mapUrl)) return alert('קישור המיקום לא תקין');
+    e.mapUrl = normalizeUrl(e.mapUrl);
     update((s) => {
       const i = s.events.findIndex((x) => x.id === e.id);
       if (i >= 0) s.events[i] = e;
@@ -273,9 +275,7 @@ function EventForm({ event, onClose }: { event?: TeamEvent; onClose: () => void 
       <Field label="מיקום">
         <input className="input" value={e.location ?? ''} onChange={(ev) => set('location', ev.target.value)} />
       </Field>
-      <Field label="קישור למיקום (לא חובה)" hint="קישור 'שיתוף' מוויז או מגוגל מפות">
-        <input className="input" dir="ltr" inputMode="url" value={e.mapUrl ?? ''} onChange={(ev) => set('mapUrl', ev.target.value.trim() || undefined)} placeholder="https://maps.app.goo.gl/…" />
-      </Field>
+      <LocationField value={e.mapUrl} onChange={(v) => set('mapUrl', v)} place={e.location} />
       <Field label="הערות / תוכנית האימון">
         <textarea className="input" rows={3} value={e.notes ?? ''} onChange={(ev) => set('notes', ev.target.value)} placeholder="למשל: להביא נעלי קט־רגל, דגש על כדורים נייחים" />
       </Field>
