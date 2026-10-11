@@ -1,7 +1,8 @@
 import type { AppState, Match, Rsvp, TeamEvent } from '../types';
 import { setRsvp, useApp } from '../store';
 export { setRsvp };
-import { relDay, resultOf, score, shortDate, todayISO } from '../utils';
+import { hhmm, relDay, resultOf, score, shortDate, todayISO } from '../utils';
+import { TeamBadge } from './club';
 import { Icon } from './ui';
 
 export type ScheduleItem =
@@ -40,11 +41,12 @@ export function MatchCard({ match, onClick }: { match: Match; onClick?: () => vo
       </div>
       <div className="match-card-main">
         <div className="match-card-opp">
+          <TeamBadge name={match.opponent} size={28} />
           <span className={'ha-chip ' + (match.home ? 'home' : 'away')}>{match.home ? 'בית' : 'חוץ'}</span>
           {match.opponent}
         </div>
         <small className="muted">
-          {match.status === 'finished' ? match.venue : `${match.competition} · ${match.time}${match.venue ? ' · ' + match.venue : ''}`}
+          {match.status === 'finished' ? match.venue : `${match.competition} · ${hhmm(match.time)}${match.venue ? ' · ' + match.venue : ''}`}
         </small>
       </div>
       {match.status === 'scheduled' ? (

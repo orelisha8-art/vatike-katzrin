@@ -78,8 +78,15 @@ function Splash({ text, logout }: { text?: string; logout?: boolean }) {
 
 function SyncBadge() {
   const sync = useSync();
+  const [, force] = useState(0);
+  useEffect(() => {
+    if (!sync.savedAt) return;
+    const t = setTimeout(() => force((x) => x + 1), 1600);
+    return () => clearTimeout(t);
+  }, [sync.savedAt]);
   if (sync.error) return <span className="sync-badge error">{sync.error}</span>;
   if (sync.saving) return <span className="sync-badge">שומר…</span>;
+  if (sync.savedAt && Date.now() - sync.savedAt < 1500) return <span className="sync-badge saved">נשמר ✓</span>;
   return null;
 }
 

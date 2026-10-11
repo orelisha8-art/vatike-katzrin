@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { update, useApp } from '../store';
 import { go } from '../router';
-import { Empty, Fab, Field, Modal, PageHead, Segmented } from '../components/ui';
+import { Empty, Fab, Field, Icon, Modal, PageHead, Segmented } from '../components/ui';
 import { FormGuide, MatchCard } from '../components/cards';
 import type { Match } from '../types';
 import { countedScore, score, todayISO, uid } from '../utils';
@@ -90,9 +90,26 @@ export function MatchForm({ match, onClose, onSaved }: { match?: Match; onClose:
           <button className="btn btn-primary" onClick={save}>
             שמירה
           </button>
-          <button className="btn btn-ghost" onClick={onClose}>
-            ביטול
-          </button>
+          {match ? (
+            <button
+              className="btn btn-ghost danger"
+              onClick={() => {
+                if (!window.confirm(`למחוק את המשחק מול ${match.opponent}? כל השערים, הציונים ואישורי ההגעה שלו יימחקו.`)) return;
+                update((s) => {
+                  s.matches = s.matches.filter((x) => x.id !== match.id);
+                  delete s.rsvp[match.id];
+                });
+                onClose();
+                go('matches');
+              }}
+            >
+              <Icon name="trash" size={16} /> מחיקת משחק
+            </button>
+          ) : (
+            <button className="btn btn-ghost" onClick={onClose}>
+              ביטול
+            </button>
+          )}
         </>
       }
     >

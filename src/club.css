@@ -512,3 +512,167 @@
 .place-3 .podium-block {
   height: 46px;
 }
+
+/* ---------- עריכת משחק ---------- */
+.btn-edit {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--brand);
+  font-weight: 800;
+}
+.sync-badge.saved {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+  font-weight: 800;
+}
+
+/* ---------- שערים ובישולים ---------- */
+.goals-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 4px solid var(--brand);
+}
+.goals-panel .card-head {
+  margin-bottom: 0;
+}
+.gp-score {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 1.4rem;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--brand);
+  direction: ltr;
+}
+.gp-warn {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--warn);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.gp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gp-row {
+  display: grid;
+  grid-template-columns: 30px 1fr 1fr;
+  grid-template-areas:
+    'idx scorer assist'
+    'idx min tools';
+  gap: 6px 8px;
+  align-items: end;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.gp-row.missing {
+  border-color: var(--warn);
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+.gp-idx {
+  grid-area: idx;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--brand);
+  font-family: var(--display);
+  font-weight: 900;
+}
+.gp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.gp-field small {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.gp-field .input {
+  min-height: 40px;
+  padding: 6px 8px;
+  font-size: 0.92rem;
+}
+.gp-row .gp-field:nth-of-type(1) {
+  grid-area: scorer;
+}
+.gp-row .gp-field:nth-of-type(2) {
+  grid-area: assist;
+}
+.gp-min {
+  grid-area: min;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.gp-min .input {
+  width: 64px;
+  text-align: center;
+}
+.gp-pen {
+  grid-area: tools;
+  font-size: 0.85rem;
+  justify-self: start;
+  align-self: center;
+}
+.gp-row > .icon-btn {
+  grid-area: tools;
+  justify-self: end;
+  align-self: center;
+}
+@media (min-width: 700px) {
+  .gp-row {
+    grid-template-columns: 34px 1.3fr 1.3fr 0.9fr auto auto;
+    grid-template-areas: 'idx scorer assist min pen del';
+  }
+  .gp-pen {
+    grid-area: pen;
+  }
+  .gp-row > .icon-btn {
+    grid-area: del;
+  }
+}
+.gp-opp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px dashed var(--border);
+  font-weight: 700;
+}
+.gp-opp .stepper b {
+  min-width: 34px;
+  text-align: center;
+  font-family: var(--display);
+  font-size: 1.3rem;
+}
+.gp-opp .icon-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* ---------- כרטיס משחק ---------- */
+.match-card {
+  transition: border-color 0.15s, transform 0.1s;
+}
+.match-card:active {
+  transform: scale(0.99);
+}
+.match-card-opp {
+  gap: 6px;
+}

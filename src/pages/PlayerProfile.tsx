@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { update, useApp } from '../store';
+import { deletePlayer, useApp } from '../store';
 import { back, go } from '../router';
 import { Avatar, confirmDelete, Empty, Icon, PageHead, RatingBadge, Stat } from '../components/ui';
 import PlayerForm from '../components/PlayerForm';
@@ -23,10 +23,9 @@ export default function PlayerProfile({ id, manager, meId }: { id: string; manag
     .sort((a, b) => b.date.localeCompare(a.date));
 
   const remove = () => {
-    if (!confirmDelete(p.name)) return;
-    update((st) => {
-      st.players = st.players.filter((x) => x.id !== p.id);
-    });
+    if (!window.confirm(`למחוק את ${p.name} לצמיתות? גם הציונים והסטטיסטיקה שלו יימחקו.
+אם השחקן רק עזב — בחר "עריכה" ← "עזב את הקבוצה".`)) return;
+    deletePlayer(p.id);
     go('squad');
   };
 

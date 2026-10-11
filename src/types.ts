@@ -30,6 +30,7 @@ export interface MatchEvent {
   playerId?: string; // כובש / מקבל כרטיס
   assistId?: string;
   penalty?: boolean;
+  og?: boolean; // גול עצמי של היריבה
   outId?: string; // חילוף - יוצא
   inId?: string; // חילוף - נכנס
   text?: string; // אירוע חופשי (החמצה, פציעה, רגע מפתח…)

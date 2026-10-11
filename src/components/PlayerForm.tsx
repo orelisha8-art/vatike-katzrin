@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Player, PlayerStatus, Position } from '../types';
-import { update } from '../store';
+import { deletePlayer, update } from '../store';
+import { go } from '../router';
 import { POSITIONS, STATUS, uid } from '../utils';
 import { Field, Modal, PhotoInput, Segmented } from './ui';
 
@@ -33,9 +34,38 @@ export default function PlayerForm({ player, onClose }: { player?: Player; onClo
           <button className="btn btn-primary" onClick={save}>
             שמירה
           </button>
-          <button className="btn btn-ghost" onClick={onClose}>
-            ביטול
-          </button>
+          {player ? (
+            <>
+              {player.active && (
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    if (!window.confirm(`לסמן ש${player.name} עזב את הקבוצה? הוא יוסר מהסגל, והסטטיסטיקה שלו תישמר.`)) return;
+                    update((s) => void (s.players.find((x) => x.id === player.id)!.active = false));
+                    onClose();
+                  }}
+                >
+                  עזב את הקבוצה
+                </button>
+              )}
+              <button
+                className="btn btn-ghost danger"
+                onClick={() => {
+                  if (!window.confirm(`למחוק את ${player.name} לצמיתות? גם הציונים והסטטיסטיקה שלו יימחקו.
+אם השחקן רק עזב — עדיף "עזב את הקבוצה".`)) return;
+                  deletePlayer(player.id);
+                  onClose();
+                  go('squad');
+                }}
+              >
+                מחיקה
+              </button>
+            </>
+          ) : (
+            <button className="btn btn-ghost" onClick={onClose}>
+              ביטול
+            </button>
+          )}
         </>
       }
     >

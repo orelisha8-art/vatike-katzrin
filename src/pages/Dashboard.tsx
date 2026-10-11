@@ -6,7 +6,7 @@ import { TeamBanner } from '../components/ui';
 import { go } from '../router';
 import { Avatar, Icon, RatingBadge, Stat } from '../components/ui';
 import { EVENT_TYPES, FormGuide, RsvpMini, rsvpCounts, upcomingItems } from '../components/cards';
-import { daysBetween, money, playerStats, relDay, resultOf, score, shortDate, STATUS, todayISO } from '../utils';
+import { daysBetween, money, playerStats, relDay, resultOf, score, shortDate, STATUS, todayISO , hhmm } from '../utils';
 
 export default function Dashboard() {
   const state = useApp();
@@ -73,7 +73,7 @@ export default function Dashboard() {
           <div className="hero-top">
             <span className="hero-label">המשחק הבא · {nextMatch.match.competition}</span>
             <span className="hero-when">
-              {relDay(nextMatch.date)} · {nextMatch.time}
+              {relDay(nextMatch.date)} · {hhmm(nextMatch.time)}
             </span>
           </div>
           <div className="hero-vs">
@@ -176,7 +176,7 @@ export default function Dashboard() {
                   <span className="ms-main">
                     <strong>{i.kind === 'match' ? 'משחק נגד ' + i.match.opponent : i.event.title}</strong>
                     <small>
-                      {relDay(i.date)} · {i.time}
+                      {relDay(i.date)} · {hhmm(i.time)}
                     </small>
                   </span>
                   <RsvpMini itemId={i.id} state={state} />

@@ -303,3 +303,6 @@ export const whatsappTo = (phone: string) => {
   const intl = digits.startsWith('0') ? '972' + digits.slice(1) : digits;
   return 'https://wa.me/' + intl;
 };
+
+/** שעה להצגה — אם עוד לא נקבעה */
+export const hhmm = (t?: string) => t || 'שעה תיקבע';

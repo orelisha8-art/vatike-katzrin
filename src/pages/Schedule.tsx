@@ -4,7 +4,7 @@ import { go } from '../router';
 import { Avatar, confirmDelete, Empty, Fab, Field, Icon, Modal, PageHead, Segmented } from '../components/ui';
 import { EVENT_TYPES, RsvpButtons, RsvpMini, scheduleItems, setRsvp, type ScheduleItem } from '../components/cards';
 import type { EventType, Rsvp, TeamEvent } from '../types';
-import { addDays, byNumber, fullDate, relDay, shareWhatsApp, todayISO, uid } from '../utils';
+import { addDays, byNumber, fullDate, relDay, shareWhatsApp, todayISO, uid , hhmm } from '../utils';
 
 export default function Schedule({ manager, meId }: { manager: boolean; meId?: string }) {
   const state = useApp();
@@ -26,8 +26,8 @@ export default function Schedule({ manager, meId }: { manager: boolean; meId?: s
     const week = all.filter((i) => i.date >= t && i.date <= addDays(t, 7));
     const lines = week.map((i) =>
       i.kind === 'match'
-        ? `⚽ ${fullDate(i.date)} ${i.time} — משחק נגד ${i.match.opponent} (${i.match.home ? 'בית' : 'חוץ'})`
-        : `${EVENT_TYPES[i.event.type].emoji} ${fullDate(i.date)} ${i.time} — ${i.event.title}${i.event.location ? ' @ ' + i.event.location : ''}`,
+        ? `⚽ ${fullDate(i.date)} ${hhmm(i.time)} — משחק נגד ${i.match.opponent} (${i.match.home ? 'בית' : 'חוץ'})`
+        : `${EVENT_TYPES[i.event.type].emoji} ${fullDate(i.date)} ${hhmm(i.time)} — ${i.event.title}${i.event.location ? ' @ ' + i.event.location : ''}`,
     );
     shareWhatsApp(`📅 הלו״ז של ${state.settings.teamName} לשבוע הקרוב\n\n${lines.join('\n')}\n\nנא לאשר הגעה באפליקציה 🙏`);
   };
@@ -70,7 +70,7 @@ export default function Schedule({ manager, meId }: { manager: boolean; meId?: s
             return (
               <div key={i.id} className={'card sched-card type-' + type}>
                 <button className="sched-main" onClick={() => (isMatch ? go('matches/' + i.id) : manager ? setOpen(i.id) : undefined)}>
-                  <span className="sched-time">{i.time}</span>
+                  <span className="sched-time">{i.time || '—'}</span>
                   <span className="sched-emoji">{EVENT_TYPES[type].emoji}</span>
                   <span className="sched-text">
                     <strong>{title}</strong>
@@ -155,7 +155,7 @@ function EventDetail({ ev, onClose, onEdit }: { ev: TeamEvent; onClose: () => vo
       }
     >
       <p className="muted">
-        {fullDate(ev.date)} · {ev.time}
+        {fullDate(ev.date)} · {hhmm(ev.time)}
         {ev.location ? ' · ' + ev.location : ''}
       </p>
       {ev.notes && <p className="pre">{ev.notes}</p>}

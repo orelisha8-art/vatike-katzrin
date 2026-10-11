@@ -24,6 +24,7 @@ import {
   starters,
   todayISO,
   uid,
+  hhmm,
 } from '../utils';
 
 type Tab = 'info' | 'squad' | 'lineup' | 'live' | 'ratings';
@@ -52,7 +53,7 @@ export default function MatchDetail({ id, manager, meId }: { id: string; manager
         { value: 'info', label: 'פרטים' },
         { value: 'squad', label: `סגל${m.squad.length ? ' ' + m.squad.length : ''}` },
         { value: 'lineup', label: 'הרכב' },
-        { value: 'live', label: m.status === 'finished' ? 'אירועים' : 'לייב' },
+        { value: 'live', label: m.status === 'finished' ? 'שערים ואירועים' : 'לייב' },
         { value: 'ratings', label: 'ציונים' },
       ]
     : [
@@ -73,8 +74,8 @@ export default function MatchDetail({ id, manager, meId }: { id: string; manager
           {m.competition} · {fullDate(m.date)}
         </span>
         {manager && (
-          <button className="icon-btn" onClick={() => setEditing(true)} aria-label="עריכה">
-            <Icon name="edit" size={18} />
+          <button className="btn btn-sm btn-edit" onClick={() => setEditing(true)}>
+            <Icon name="edit" size={16} /> עריכת משחק
           </button>
         )}
       </div>
@@ -146,7 +147,7 @@ function InfoTab({ m, manager, meId, state }: { m: Match; manager: boolean; meId
 
   const reminder = () =>
     shareWhatsApp(
-      `⚽ ${state.settings.teamName} נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${m.time}\n📍 ${m.venue || ''}\n🏆 ${m.competition}${m.notes ? '\n\n' + m.notes : ''}\n\nנא לאשר הגעה באפליקציה 🙏`,
+      `⚽ ${state.settings.teamName} נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${hhmm(m.time)}\n📍 ${m.venue || ''}\n🏆 ${m.competition}${m.notes ? '\n\n' + m.notes : ''}\n\nנא לאשר הגעה באפליקציה 🙏`,
     );
 
   return (
@@ -165,7 +166,7 @@ function InfoTab({ m, manager, meId, state }: { m: Match; manager: boolean; meId
         <dl className="details">
           <dt>מתי</dt>
           <dd>
-            {fullDate(m.date)} · {m.time}
+            {fullDate(m.date)} · {hhmm(m.time)}
           </dd>
           <dt>איפה</dt>
           <dd>
@@ -274,7 +275,7 @@ function SquadTab({ m, state }: { m: Match; state: AppState }) {
       .sort((a, b) => byNumber(a!, b!))
       .map((p) => `${p!.number ?? ''} ${p!.name}`.trim())
       .join('\n');
-    shareWhatsApp(`📋 הסגל למשחק נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${m.time}\n📍 ${m.venue || ''}\n\n${list}${m.notes ? '\n\n' + m.notes : ''}`);
+    shareWhatsApp(`📋 הסגל למשחק נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${hhmm(m.time)}\n📍 ${m.venue || ''}\n\n${list}${m.notes ? '\n\n' + m.notes : ''}`);
   };
 
   return (
@@ -382,7 +383,7 @@ function LineupTab({ m, manager, state }: { m: Match; manager: boolean; state: A
     });
     const benchText = benchIds.map((id) => nameOf(state, id)).join(', ');
     shareWhatsApp(
-      `⚽ ההרכב נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${m.time}\n📍 ${m.venue || ''}\n\nמערך ${m.formation}\n${lines.filter(Boolean).join('\n')}${benchText ? `\n\nספסל: ${benchText}` : ''}\n\nבהצלחה! 💪`,
+      `⚽ ההרכב נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${hhmm(m.time)}\n📍 ${m.venue || ''}\n\nמערך ${m.formation}\n${lines.filter(Boolean).join('\n')}${benchText ? `\n\nספסל: ${benchText}` : ''}\n\nבהצלחה! 💪`,
     );
   };
 
@@ -522,8 +523,10 @@ function LiveTab({ m, manager, state }: { m: Match; manager: boolean; state: App
 
   return (
     <div className="stack">
+      {manager && m.status !== 'scheduled' && <GoalsPanel m={m} state={state} />}
       {manager && (
         <section className="card live-controls">
+          {m.status === 'finished' && <h2>הוספת אירוע</h2>}
           {m.status === 'scheduled' && (
             <>
               <button className="btn btn-primary btn-lg full" onClick={kickoff}>
@@ -698,12 +701,119 @@ function EventEdit({ m, ev, state, onClose }: { m: Match; ev: MatchEvent; state:
   );
 }
 
+/** טבלת שערים פשוטה: כל גול בשורה — מי כבש, מי בישל, דקה. + שערי היריבה */
+function GoalsPanel({ m, state }: { m: Match; state: AppState }) {
+  const goals = m.events.filter((e) => e.type === 'goal');
+  const oppCount = m.events.filter((e) => e.type === 'opp_goal').length;
+  const referenced = new Set(goals.flatMap((g) => [g.playerId, g.assistId]).filter(Boolean) as string[]);
+  const players = state.players.filter((p) => p.active || referenced.has(p.id)).sort(byNumber);
+  const counted = { us: goals.length, them: oppCount };
+  const shown = score(m);
+
+  const setGoal = (id: string, changes: Partial<MatchEvent>) =>
+    patch(m.id, (x) => {
+      const g = x.events.find((e) => e.id === id);
+      if (!g) return;
+      Object.assign(g, changes);
+      if (g.playerId) delete g.og;
+      if (g.assistId && g.assistId === g.playerId) delete g.assistId;
+    });
+  const addGoal = () => patch(m.id, (x) => void x.events.push({ id: uid(), minute: 0, type: 'goal' }));
+  const removeGoal = (id: string) => window.confirm('למחוק את הגול?') && patch(m.id, (x) => (x.events = x.events.filter((e) => e.id !== id)));
+  const setOpp = (n: number) =>
+    patch(m.id, (x) => {
+      const opp = x.events.filter((e) => e.type === 'opp_goal');
+      if (n > opp.length) for (let i = opp.length; i < n; i++) x.events.push({ id: uid(), minute: 0, type: 'opp_goal' });
+      else {
+        const drop = new Set(opp.slice(n).map((e) => e.id));
+        x.events = x.events.filter((e) => !drop.has(e.id));
+      }
+    });
+  const options = (
+    <>
+      {players.map((p) => (
+        <option key={p.id} value={p.id}>
+          {p.number != null ? p.number + ' · ' : ''}
+          {p.name}
+        </option>
+      ))}
+    </>
+  );
+
+  return (
+    <section className="card goals-panel">
+      <div className="card-head">
+        <h2>שערים ובישולים</h2>
+        <span className="gp-score">
+          {shown.us}–{shown.them}
+        </span>
+      </div>
+      {m.final && (m.final.us !== counted.us || m.final.them !== counted.them) && (
+        <p className="gp-warn">
+          התוצאה שמוצגת ({m.final.us}–{m.final.them}) הוזנה ידנית ושונה מהשערים שנרשמו ({counted.us}–{counted.them}).{' '}
+          <button className="link-btn" onClick={() => patch(m.id, (x) => void delete x.final)}>
+            לחשב לפי השערים
+          </button>
+        </p>
+      )}
+      {goals.length === 0 && <p className="muted small">עוד לא נרשמו שערים שלנו</p>}
+      <div className="gp-list">
+        {goals.map((g, i) => (
+          <div key={g.id} className={'gp-row' + (!g.playerId && !g.og ? ' missing' : '')}>
+            <span className="gp-idx">{i + 1}</span>
+            <label className="gp-field">
+              <small>⚽ כבש</small>
+              <select className="input" value={g.playerId ?? (g.og ? 'og' : '')} onChange={(e) => setGoal(g.id, e.target.value === 'og' ? { playerId: undefined, og: true, assistId: undefined } : { playerId: e.target.value || undefined, og: undefined })}>
+                <option value="">— בחר —</option>
+                <option value="og">גול עצמי של היריבה</option>
+                {options}
+              </select>
+            </label>
+            <label className="gp-field">
+              <small>🅰️ בישל</small>
+              <select className="input" value={g.assistId ?? ''} onChange={(e) => setGoal(g.id, { assistId: e.target.value || undefined })}>
+                <option value="">ללא בישול</option>
+                {options}
+              </select>
+            </label>
+            <label className="gp-field gp-min">
+              <small>דקה</small>
+              <input className="input" inputMode="numeric" placeholder="—" value={g.minute || ''} onChange={(e) => setGoal(g.id, { minute: Number(e.target.value.replace(/\D/g, '')) || 0 })} />
+            </label>
+            <label className="check gp-pen" title="פנדל">
+              <input type="checkbox" checked={!!g.penalty} onChange={(e) => setGoal(g.id, { penalty: e.target.checked || undefined })} /> פנדל
+            </label>
+            <button className="icon-btn sm danger" onClick={() => removeGoal(g.id)} aria-label="מחיקת גול">
+              <Icon name="trash" size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <button className="btn btn-primary full" onClick={addGoal}>
+        <Icon name="plus" size={18} /> הוספת גול שלנו
+      </button>
+      <div className="gp-opp">
+        <span>🥅 שערים של {m.opponent || 'היריבה'}</span>
+        <div className="stepper">
+          <button type="button" className="icon-btn" onClick={() => setOpp(Math.max(0, oppCount - 1))} aria-label="פחות">
+            −
+          </button>
+          <b>{oppCount}</b>
+          <button type="button" className="icon-btn" onClick={() => setOpp(oppCount + 1)} aria-label="יותר">
+            +
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function EventText({ e, state }: { e: MatchEvent; state: AppState }) {
   switch (e.type) {
     case 'goal':
       return (
         <>
-          <strong>{e.playerId ? nameOf(state, e.playerId) : 'גול עצמי של היריבה'}</strong>
+          <strong>{e.playerId ? nameOf(state, e.playerId) : e.og ? 'גול עצמי של היריבה' : 'כובש לא נבחר'}</strong>
           {e.penalty && ' (פנדל)'}
           {e.assistId && <small> · בישול: {nameOf(state, e.assistId)}</small>}
         </>
@@ -776,7 +886,7 @@ function EventEntry({ m, type, state, onClose }: { m: Match; type: MatchEventTyp
           <label className="check">
             <input type="checkbox" checked={!!ev.penalty} onChange={(e) => setEv({ ...ev, penalty: e.target.checked })} /> פנדל
           </label>
-          <button className="btn btn-ghost" onClick={() => save({})}>
+          <button className="btn btn-ghost" onClick={() => save({ og: true })}>
             גול עצמי של היריבה
           </button>
         </div>

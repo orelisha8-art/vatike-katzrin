@@ -19,7 +19,7 @@ let rev = 0;
 let serverDown = false; // השרת קיים אבל מסד הנתונים לא זמין
 export const isServerDown = () => serverDown;
 let noTeam = false; // שרת פעיל אבל הקבוצה עוד לא הוגדרה
-let sync: { saving: boolean; error: string | null } = { saving: false, error: null };
+let sync: { saving: boolean; error: string | null; savedAt?: number } = { saving: false, error: null };
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
@@ -160,7 +160,7 @@ async function push() {
   }
   pushing = false;
   if (pending.length) void push();
-  else setSync({ saving: false });
+  else setSync({ saving: false, savedAt: Date.now() });
 }
 
 // ---------- עדכונים ----------
@@ -173,7 +173,7 @@ export function update(fn: (draft: AppState) => void) {
   else if (session?.role === 'manager') {
     pending.push(fn);
     clearTimeout(timer);
-    timer = setTimeout(push, 350);
+    timer = setTimeout(push, 150);
   }
   emit();
 }
@@ -203,6 +203,20 @@ export function setRsvp(itemId: string, playerId: string, value: Rsvp | null) {
     });
 }
 
+/** מחיקת שחקן לצמיתות — כולל מסגלים, הרכבים, ציונים ואישורי הגעה */
+export function deletePlayer(id: string) {
+  update((s) => {
+    s.players = s.players.filter((p) => p.id !== id);
+    s.matches.forEach((m) => {
+      m.squad = m.squad.filter((x) => x !== id);
+      m.slots = m.slots.map((x) => (x === id ? null : x));
+      delete m.ratings[id];
+      if (m.motm === id) delete m.motm;
+    });
+    Object.values(s.rsvp).forEach((r) => delete r[id]);
+  });
+}
+
 // ---------- מצב מקומי ----------
 function persistLocal() {
   try {
@@ -221,6 +235,22 @@ function loadLocal(): AppState {
   }
   return createSeed();
 }
+
+// ---------- לא לאבד שינויים ברענון / סגירה ----------
+const flush = () => {
+  (document.activeElement as HTMLElement | null)?.blur?.(); // שומר שדות טקסט שעדיין בעריכה
+  clearTimeout(timer);
+  void push();
+};
+document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && mode === 'remote' && flush());
+window.addEventListener('beforeunload', (e) => {
+  if (mode !== 'remote') return;
+  flush();
+  if (pending.length || pushing) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
 
 // ---------- אתחול ----------
 (async () => {

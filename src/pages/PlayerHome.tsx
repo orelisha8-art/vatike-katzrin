@@ -4,7 +4,7 @@ import { TeamBanner } from '../components/ui';
 import { go } from '../router';
 import { Avatar, Icon, RatingBadge, Stat } from '../components/ui';
 import { EVENT_TYPES, MatchCard, RsvpButtons, upcomingItems } from '../components/cards';
-import { firstName, playerStats, relDay, resultOf, score, shortDate, STATUS } from '../utils';
+import { firstName, playerStats, relDay, resultOf, score, shortDate, STATUS , hhmm } from '../utils';
 
 export default function PlayerHome({ playerId }: { playerId: string }) {
   const state = useApp();
@@ -49,7 +49,7 @@ export default function PlayerHome({ playerId }: { playerId: string }) {
           </span>
           <h2>{next.kind === 'match' ? `משחק נגד ${next.match.opponent}` : next.event.title}</h2>
           <p className="muted">
-            {relDay(next.date)} · {next.time} · {next.kind === 'match' ? next.match.venue : next.event.location}
+            {relDay(next.date)} · {hhmm(next.time)} · {next.kind === 'match' ? next.match.venue : next.event.location}
           </p>
           {next.kind === 'event' && next.event.notes && <p className="pre small">{next.event.notes}</p>}
           <RsvpButtons itemId={next.id} playerId={me.id} big />
@@ -61,7 +61,7 @@ export default function PlayerHome({ playerId }: { playerId: string }) {
           <div className="hero-top">
             <span className="hero-label">המשחק הבא · {nextMatch.match.competition}</span>
             <span className="hero-when">
-              {relDay(nextMatch.date)} · {nextMatch.time}
+              {relDay(nextMatch.date)} · {hhmm(nextMatch.time)}
             </span>
           </div>
           <div className="hero-vs">
@@ -158,7 +158,7 @@ export default function PlayerHome({ playerId }: { playerId: string }) {
                 </strong>
                 <small className="muted">
                   {' '}
-                  · {relDay(i.date)} {i.time}
+                  · {relDay(i.date)} {hhmm(i.time)}
                 </small>
               </div>
               <RsvpButtons itemId={i.id} playerId={me.id} />
