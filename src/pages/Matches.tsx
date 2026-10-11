@@ -4,7 +4,7 @@ import { go } from '../router';
 import { Empty, Fab, Field, Modal, PageHead, Segmented } from '../components/ui';
 import { FormGuide, MatchCard } from '../components/cards';
 import type { Match } from '../types';
-import { todayISO, uid } from '../utils';
+import { countedScore, score, todayISO, uid } from '../utils';
 
 export default function Matches({ manager }: { manager: boolean }) {
   const state = useApp();
@@ -134,6 +134,36 @@ export function MatchForm({ match, onClose, onSaved }: { match?: Match; onClose:
           </select>
         </Field>
       </div>
+      <Field label="סטטוס">
+        <Segmented
+          value={m.status === 'live' ? 'finished' : m.status}
+          onChange={(v) => setM((x) => ({ ...x, status: v, live: undefined }))}
+          options={[
+            { value: 'scheduled', label: 'עתידי' },
+            { value: 'finished', label: 'הסתיים' },
+          ]}
+        />
+      </Field>
+      {m.status !== 'scheduled' && (
+        <Field label="תוצאה סופית" hint={`לפי השערים שנרשמו: ${countedScore(m).us}–${countedScore(m).them}. מה שתכתבו כאן הוא מה שיוצג.`}>
+          <div className="score-edit">
+            <label>
+              <span>{state.settings.teamName}</span>
+              <input className="input big-input" inputMode="numeric" value={score(m).us} onChange={(e) => setM((x) => ({ ...x, final: { ...score(x), us: Number(e.target.value.replace(/\D/g, '')) || 0 } }))} />
+            </label>
+            <b>:</b>
+            <label>
+              <span>{m.opponent || 'יריבה'}</span>
+              <input className="input big-input" inputMode="numeric" value={score(m).them} onChange={(e) => setM((x) => ({ ...x, final: { ...score(x), them: Number(e.target.value.replace(/\D/g, '')) || 0 } }))} />
+            </label>
+          </div>
+          {m.final && (
+            <button type="button" className="link-btn" onClick={() => setM((x) => ({ ...x, final: undefined }))}>
+              חזרה לחישוב אוטומטי לפי השערים
+            </button>
+          )}
+        </Field>
+      )}
       <Field label="מגרש">
         <input className="input" value={m.venue ?? ''} onChange={(e) => set('venue', e.target.value)} />
       </Field>

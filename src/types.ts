@@ -55,6 +55,7 @@ export interface Match {
   duration: number;
   notes?: string; // הערות לפני המשחק (התכנסות, הסעה…)
   summary?: string; // סיכום המאמן
+  final?: { us: number; them: number }; // תוצאה סופית ידנית (גוברת על ספירת השערים)
 }
 
 export type EventType = 'training' | 'meeting' | 'other';

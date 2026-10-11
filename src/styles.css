@@ -2561,3 +2561,24 @@ button.slot:active .slot-empty {
   text-align: center;
 }
 .settings-team-photo { width: 100%; max-height: 220px; object-fit: cover; border-radius: 14px; }
+.score-edit {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.score-edit label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+.score-edit input {
+  text-align: center;
+}
+.score-edit b {
+  font-size: 1.6rem;
+  padding-bottom: 6px;
+}

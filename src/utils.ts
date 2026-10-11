@@ -166,10 +166,11 @@ export const FORMATIONS: Record<string, Slot[]> = {
 export const starters = (m: Match) => m.slots.filter(Boolean) as string[];
 export const bench = (m: Match) => m.squad.filter((id) => !m.slots.includes(id));
 
-export const score = (m: Match) => ({
+export const countedScore = (m: Match) => ({
   us: m.events.filter((e) => e.type === 'goal').length,
   them: m.events.filter((e) => e.type === 'opp_goal').length,
 });
+export const score = (m: Match) => m.final ?? countedScore(m);
 
 export const resultOf = (m: Match): 'W' | 'D' | 'L' | null => {
   if (m.status !== 'finished') return null;

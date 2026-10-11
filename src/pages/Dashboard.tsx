@@ -53,6 +53,7 @@ export default function Dashboard() {
 
   // ---------- מובילים ----------
   const stats = state.players.filter((p) => p.active).map((p) => ({ p, s: playerStats(state, p.id) }));
+  const assisters = stats.filter((x) => x.s.assists > 0).sort((a, b) => b.s.assists - a.s.assists || b.s.goals - a.s.goals).slice(0, 3);
   const scorers = stats.filter((x) => x.s.goals > 0).sort((a, b) => b.s.goals - a.s.goals || b.s.assists - a.s.assists).slice(0, 3);
   const rated = stats.filter((x) => x.s.avgRating !== null).sort((a, b) => b.s.avgRating! - a.s.avgRating!).slice(0, 3);
 
@@ -159,12 +160,22 @@ export default function Dashboard() {
 
         <section className="card">
           <div className="card-head">
-            <h2>מלכי השערים</h2>
+            <h2>מלך השערים ⚽</h2>
             <a href="#/stats" className="link">
               לכל הטבלאות
             </a>
           </div>
           <Leaders rows={scorers.map((x) => ({ p: x.p, value: <b className="big-num">{x.s.goals}</b>, sub: `${x.s.assists} בישולים` }))} empty="עוד אין שערים" />
+        </section>
+
+        <section className="card">
+          <div className="card-head">
+            <h2>מלך הבישולים 🅰️</h2>
+            <a href="#/stats" className="link">
+              לכל הטבלאות
+            </a>
+          </div>
+          <Leaders rows={assisters.map((x) => ({ p: x.p, value: <b className="big-num">{x.s.assists}</b>, sub: `${x.s.goals} שערים` }))} empty="עוד אין בישולים" />
         </section>
 
         <section className="card">
