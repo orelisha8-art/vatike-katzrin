@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { login, setSession, useApp, useLoaded, useMode, useNoTeam, useSession, useSync } from './store';
+import { isServerDown, login, setSession, useApp, useLoaded, useMode, useNoTeam, useSession, useSync } from './store';
 import { go, useRoute } from './router';
 import { Avatar, Icon } from './components/ui';
 import { byNumber } from './utils';
@@ -239,6 +239,7 @@ function Login() {
       <div className="login-card">
         {brand(info.teamName, info.league)}
         <div className="login-pin">
+          {isServerDown() && <p className="server-down">השרת לא זמין כרגע (מסד הנתונים כבוי). נסו שוב בעוד כמה דקות.</p>}
           <p>הזן קוד כניסה</p>
           <input
             className={'pin-input' + (error ? ' shake' : '')}

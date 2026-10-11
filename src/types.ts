@@ -137,6 +137,7 @@ export interface Settings {
   color: string;
   managerPin?: string; // רק במצב מקומי. באתר החי הקודים שמורים בשרת בלבד
   showRatingsToPlayers: boolean;
+  teamPhoto?: string; // תמונת קבוצה — מוצגת רק אחרי כניסה
 }
 
 export interface AppState {

@@ -16,6 +16,8 @@ const SESSION_KEY = 'team-app-session-v2';
 let mode: Mode = 'loading';
 let state: AppState | null = null;
 let rev = 0;
+let serverDown = false; // השרת קיים אבל מסד הנתונים לא זמין
+export const isServerDown = () => serverDown;
 let noTeam = false; // שרת פעיל אבל הקבוצה עוד לא הוגדרה
 let sync: { saving: boolean; error: string | null } = { saving: false, error: null };
 
@@ -225,7 +227,8 @@ function loadLocal(): AppState {
   let remote = false;
   try {
     const r = await fetch('/api/health');
-    remote = r.ok && (r.headers.get('content-type') || '').includes('json');
+    remote = (r.headers.get('content-type') || '').includes('json');
+    serverDown = remote && !r.ok;
   } catch {
     /* אין שרת */
   }

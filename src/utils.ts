@@ -263,12 +263,21 @@ export const attendanceRate = (state: AppState, pid: string) => {
 };
 
 // ---------- תמונות ----------
-export const resizeImage = (file: File, max = 320): Promise<string> =>
+export const resizeImage = (file: File, max = 320, square = true): Promise<string> =>
   new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       // חיתוך לריבוע מהמרכז והקטנה
+      if (!square) {
+        const k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * k);
+        c.height = Math.round(img.height * k);
+        c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        return resolve(c.toDataURL('image/jpeg', 0.8));
+      }
       const side = Math.min(img.width, img.height);
       const out = Math.min(max, side);
       const c = document.createElement('canvas');

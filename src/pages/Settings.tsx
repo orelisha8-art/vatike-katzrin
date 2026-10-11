@@ -4,7 +4,7 @@ import { back } from '../router';
 import { Field, Icon, PageHead, PhotoInput } from '../components/ui';
 import { createSeed } from '../seed';
 import type { AppState } from '../types';
-import { todayISO } from '../utils';
+import { resizeImage, todayISO } from '../utils';
 
 const COLORS = ['#0f7a3e', '#c8102e', '#0b4ea2', '#f2b705', '#111827', '#6d28d9', '#0e7490', '#ea580c'];
 
@@ -41,6 +41,16 @@ export default function SettingsPage() {
       <section className="card">
         <h2>הקבוצה</h2>
         <PhotoInput value={s.logo} onChange={(v) => set('logo', v)} name={s.teamName} round={false} />
+        <Field label="תמונת קבוצה (באנר בדף הבית, רק למחוברים)">
+          {s.teamPhoto && <img src={s.teamPhoto} alt="" className="settings-team-photo" />}
+          <div className="btn-row">
+            <label className="btn">
+              <Icon name="camera" size={16} /> {s.teamPhoto ? 'החלפת תמונה' : 'העלאת תמונה'}
+              <input type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (f) set('teamPhoto', await resizeImage(f, 1400, false)); e.target.value = ''; }} />
+            </label>
+            {s.teamPhoto && <button className="btn btn-ghost danger" onClick={() => set('teamPhoto', undefined)}>הסרה</button>}
+          </div>
+        </Field>
         <Field label="שם הקבוצה">
           <input className="input" defaultValue={s.teamName} onBlur={(e) => e.target.value.trim() && set('teamName', e.target.value.trim())} />
         </Field>

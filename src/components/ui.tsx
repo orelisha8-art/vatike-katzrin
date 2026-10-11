@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { useApp } from '../store';
 import type { Player } from '../types';
 import { initials, resizeImage } from '../utils';
 
@@ -197,4 +198,19 @@ export function RatingBadge({ value }: { value?: number | null }) {
 
 export function confirmDelete(what: string) {
   return window.confirm(`למחוק את ${what}? אי אפשר לבטל.`);
+}
+
+export function TeamBanner() {
+  const state = useApp();
+  const { teamPhoto, teamName, league } = state.settings;
+  if (!teamPhoto) return null;
+  return (
+    <div className="team-banner">
+      <img src={teamPhoto} alt={'תמונת הקבוצה ' + teamName} />
+      <div className="team-banner-text">
+        <strong>{teamName}</strong>
+        <span>{league}</span>
+      </div>
+    </div>
+  );
 }

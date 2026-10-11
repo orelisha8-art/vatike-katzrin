@@ -1,4 +1,5 @@
 import { useApp } from '../store';
+import { TeamBanner } from '../components/ui';
 import { go } from '../router';
 import { Avatar, Icon, RatingBadge, Stat } from '../components/ui';
 import { EVENT_TYPES, MatchCard, RsvpButtons, upcomingItems } from '../components/cards';
@@ -24,6 +25,7 @@ export default function PlayerHome({ playerId }: { playerId: string }) {
 
   return (
     <div className="page">
+      <TeamBanner />
       <div className="player-hello">
         <Avatar player={me} size={56} />
         <div>

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { Player } from '../types';
 import { useApp } from '../store';
+import { TeamBanner } from '../components/ui';
 import { go } from '../router';
 import { Avatar, Icon, RatingBadge, Stat } from '../components/ui';
 import { EVENT_TYPES, FormGuide, RsvpMini, rsvpCounts, upcomingItems } from '../components/cards';
@@ -59,6 +60,7 @@ export default function Dashboard() {
 
   return (
     <div className="page">
+      <TeamBanner />
       <div className="hello">
         <h1>שלום, צוות 👋</h1>
         <p className="muted">{state.settings.league}</p>
