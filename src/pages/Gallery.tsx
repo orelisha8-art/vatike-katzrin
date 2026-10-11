@@ -77,7 +77,7 @@ function Lightbox({ photos, index, setIndex, manager }: { photos: Photo[]; index
     <div className="lightbox" onClick={() => setIndex(null)}>
       <div className="lb-top" onClick={(e) => e.stopPropagation()}>
         <span>
-          {index + 1} / {photos.length}
+          {index + 1} מתוך {photos.length}
         </span>
         <button className="icon-btn" onClick={() => setIndex(null)} aria-label="סגירה">
           <Icon name="x" />
