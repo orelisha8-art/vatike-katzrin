@@ -92,7 +92,17 @@ export async function changeCodes(managerPin: string, teamCode: string) {
 
 async function load() {
   try {
-    const r = await api<{ state: AppState | null; rev: number; role: 'manager' | 'team' }>('state');
+    const r = await api<{ state: AppState | null; rev: number; role: 'manager' | 'team'; unchanged?: boolean; rsvp?: AppState['rsvp'] }>(
+      state && rev ? 'state?since=' + rev : 'state',
+    );
+    if (r.unchanged) {
+      // רק אישורי הגעה עשויים להשתנות — בלי להוריד שוב את כל הנתונים
+      if (state && r.rsvp && !pending.length && !pushing && JSON.stringify(r.rsvp) !== JSON.stringify(state.rsvp)) {
+        state = { ...state, rsvp: r.rsvp };
+        emit();
+      }
+      return;
+    }
     if (!r.state) {
       if (r.role === 'manager') {
         // הפעלה ראשונה — יוצרים את הקבוצה עם נתוני הדגמה

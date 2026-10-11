@@ -12,6 +12,8 @@ export default handle(async (req, res) => {
   if (req.method === 'GET') {
     const { state, rsvp, rev } = await getState();
     if (!state) return send(res, 200, { state: null, rev, role });
+    // בדיקת עדכונים זולה: אם לא השתנה כלום — מחזירים רק את אישורי ההגעה (קטנים)
+    if (req.query.since !== undefined && Number(req.query.since) === rev) return send(res, 200, { unchanged: true, rsvp, rev, role });
     const visible = role === 'manager' ? state : forPlayers(state);
     return send(res, 200, { state: { ...visible, rsvp }, rev, role });
   }
