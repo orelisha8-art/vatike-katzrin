@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { AppState, Match, Player } from '../types';
-import { initials, playerStats, POSITIONS, STATUS } from '../utils';
+import { daysBetween, initials, playerStats, POSITIONS, STATUS, todayISO } from '../utils';
 import { Avatar } from './ui';
 
 /** סמל קבוצה בצורת מגן — שלנו צהוב, יריבה כהה */
@@ -31,7 +31,9 @@ export function Countdown({ date, time }: { date: string; time: string }) {
   const d = Math.floor(diff / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
-  const parts = time ? [{ v: d, l: 'ימים' }, { v: h, l: 'שעות' }, { v: m, l: 'דקות' }] : [{ v: d + 1, l: 'ימים' }];
+  const days = daysBetween(todayISO(), date);
+  if (!time && days <= 0) return <div className="countdown live-now">היום משחקים! ⚽</div>;
+  const parts = time ? [{ v: d, l: 'ימים' }, { v: h, l: 'שעות' }, { v: m, l: 'דקות' }] : [{ v: days, l: days === 1 ? 'יום' : 'ימים' }];
   return (
     <div className="countdown">
       {parts.map((p) => (
