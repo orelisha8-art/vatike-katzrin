@@ -98,7 +98,7 @@ function TeamApp() {
       page = isManager ? <Dashboard /> : <PlayerHome playerId={sessionPlayer!.id} />;
       break;
     case 'squad':
-      page = id ? <PlayerProfile id={id} manager={isManager} /> : <Squad manager={isManager} />;
+      page = id ? <PlayerProfile id={id} manager={isManager} meId={sessionPlayer?.id} /> : <Squad manager={isManager} />;
       break;
     case 'matches':
       page = id ? <MatchDetail id={id} manager={isManager} meId={sessionPlayer?.id} /> : <Matches manager={isManager} />;
@@ -110,7 +110,7 @@ function TeamApp() {
       page = <Stats />;
       break;
     case 'me':
-      page = <PlayerProfile id={sessionPlayer!.id} manager={false} />;
+      page = <PlayerProfile id={sessionPlayer!.id} manager={false} meId={sessionPlayer!.id} />;
       break;
     default:
       if (!isManager) page = <PlayerHome playerId={sessionPlayer!.id} />;

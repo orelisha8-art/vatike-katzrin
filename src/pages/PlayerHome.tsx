@@ -31,8 +31,13 @@ export default function PlayerHome({ playerId }: { playerId: string }) {
         <div>
           <h1>היי {firstName(me.name)} 👋</h1>
           <p className="muted">
-            #{me.number} · <span style={{ color: STATUS[me.status].color }}>{STATUS[me.status].label}</span>
+            {me.number != null && <>#{me.number} · </>}<span style={{ color: STATUS[me.status].color }}>{STATUS[me.status].label}</span>
           </p>
+          {!me.photo && (
+            <button className="btn btn-sm" onClick={() => go('me')}>
+              📸 הוסף תמונה שלך
+            </button>
+          )}
         </div>
       </div>
 

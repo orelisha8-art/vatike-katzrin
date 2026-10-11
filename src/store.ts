@@ -250,3 +250,20 @@ function loadLocal(): AppState {
   }
   emit();
 })();
+
+/** שחקן מעדכן את הפרטים האישיים שלו (תמונה, טלפון, תאריך לידה, רגל, מידות) */
+export type ProfilePatch = Partial<Pick<import('./types').Player, 'photo' | 'phone' | 'birthDate' | 'foot' | 'sizes'>>;
+
+export async function updateProfile(playerId: string, patch: ProfilePatch) {
+  if (!state) return;
+  const draft = structuredClone(state);
+  const p = draft.players.find((x) => x.id === playerId);
+  if (!p) return;
+  Object.assign(p, patch);
+  if ('photo' in patch && !patch.photo) delete p.photo;
+  state = draft;
+  emit();
+  if (mode === 'local') return persistLocal();
+  const body = { ...patch, ...('photo' in patch ? { photo: patch.photo ?? null } : {}) };
+  await api('profile', { method: 'POST', body: JSON.stringify({ playerId, patch: body }) });
+}

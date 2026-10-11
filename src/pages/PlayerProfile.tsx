@@ -3,11 +3,13 @@ import { update, useApp } from '../store';
 import { back, go } from '../router';
 import { Avatar, confirmDelete, Empty, Icon, PageHead, RatingBadge, Stat } from '../components/ui';
 import PlayerForm from '../components/PlayerForm';
+import SelfEditForm from '../components/SelfEditForm';
 import { age, attendanceRate, daysBetween, minutesPlayed, playerStats, POSITIONS, shortDate, STATUS, todayISO, whatsappTo } from '../utils';
 
-export default function PlayerProfile({ id, manager }: { id: string; manager: boolean }) {
+export default function PlayerProfile({ id, manager, meId }: { id: string; manager: boolean; meId?: string }) {
   const state = useApp();
   const [editing, setEditing] = useState(false);
+  const [selfEdit, setSelfEdit] = useState(false);
   const p = state.players.find((x) => x.id === id);
   if (!p) return <Empty title="השחקן לא נמצא" action={<button className="btn" onClick={() => go('squad')}>לסגל</button>} />;
 
@@ -30,7 +32,11 @@ export default function PlayerProfile({ id, manager }: { id: string; manager: bo
 
   return (
     <div className="page">
-      <PageHead title="" onBack={back} actions={manager && (
+      <PageHead title="" onBack={back} actions={!manager && meId === p.id ? (
+        <button className="btn btn-sm btn-primary" onClick={() => setSelfEdit(true)}>
+          <Icon name="edit" size={16} /> עריכת הפרטים שלי
+        </button>
+      ) : manager && (
         <>
           <button className="btn btn-sm" onClick={() => setEditing(true)}>
             <Icon name="edit" size={16} /> עריכה
@@ -166,6 +172,7 @@ export default function PlayerProfile({ id, manager }: { id: string; manager: bo
       )}
 
       {editing && <PlayerForm player={p} onClose={() => setEditing(false)} />}
+      {selfEdit && <SelfEditForm player={p} onClose={() => setSelfEdit(false)} />}
     </div>
   );
 }
