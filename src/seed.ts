@@ -215,7 +215,7 @@ export function createSeed(): AppState {
     settings: {
       teamName: 'ותיקי קצרין',
       league: 'ליגת הוותיקים - מחוז צפון',
-      color: '#0f7a3e',
+      color: '#fde100',
       managerPin: '1234',
       showRatingsToPlayers: true,
     },

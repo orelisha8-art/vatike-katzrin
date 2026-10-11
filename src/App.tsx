@@ -17,6 +17,18 @@ import Stats from './pages/Stats';
 import More from './pages/More';
 import PlayerHome from './pages/PlayerHome';
 
+/** צבע הקבוצה + צבע טקסט קריא עליו (שחור על צבע בהיר, לבן על כהה) */
+function applyBrand(color: string) {
+  const root = document.documentElement.style;
+  root.setProperty('--brand', color);
+  const n = parseInt(color.replace('#', '').padEnd(6, '0').slice(0, 6), 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  root.setProperty('--on-brand', 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.35 ? '#0a0a0a' : '#ffffff');
+}
+
 type NavItem = { path: string; label: string; icon: string };
 
 const MANAGER_NAV: NavItem[] = [
@@ -77,7 +89,7 @@ function TeamApp() {
   const route = useRoute();
 
   useEffect(() => {
-    document.documentElement.style.setProperty('--brand', state.settings.color);
+    applyBrand(state.settings.color);
     document.title = state.settings.teamName;
   }, [state.settings.color, state.settings.teamName]);
 
@@ -201,7 +213,7 @@ function Login() {
       .then((r) => r.json())
       .then((d) => {
         setInfo({ teamName: d.teamName, league: d.league });
-        if (d.color) document.documentElement.style.setProperty('--brand', d.color);
+        if (d.color) applyBrand(d.color);
         document.title = d.teamName;
       })
       .catch(() => {});

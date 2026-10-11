@@ -6,7 +6,7 @@ import { createSeed } from '../seed';
 import type { AppState } from '../types';
 import { resizeImage, todayISO } from '../utils';
 
-const COLORS = ['#0f7a3e', '#c8102e', '#0b4ea2', '#f2b705', '#111827', '#6d28d9', '#0e7490', '#ea580c'];
+const COLORS = ['#fde100', '#0f7a3e', '#c8102e', '#0b4ea2', '#f2b705', '#111827', '#6d28d9', '#0e7490', '#ea580c'];
 
 export default function SettingsPage() {
   const state = useApp();
