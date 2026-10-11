@@ -43,6 +43,7 @@ export interface Match {
   opponent: string;
   home: boolean;
   venue?: string;
+  mapUrl?: string; // קישור מוויז / גוגל מפות
   competition: string;
   status: 'scheduled' | 'live' | 'finished';
   squad: string[]; // שחקנים שזומנו
@@ -68,6 +69,7 @@ export interface TeamEvent {
   date: string;
   time: string;
   location?: string;
+  mapUrl?: string;
   notes?: string;
   attendance?: Record<string, boolean>;
 }
@@ -102,6 +104,8 @@ export interface Staff {
   salary: number;
   salaryType: 'חודשי' | 'לאימון' | 'למשחק';
   photo?: string;
+  playerId?: string; // אם איש הצוות הוא גם שחקן — התמונה נלקחת מהשחקן
+  showOnHome?: boolean; // מוצג בכרטיס "הצוות המקצועי" בדף הבית
 }
 
 export interface Transaction {

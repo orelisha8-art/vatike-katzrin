@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type { Player } from '../types';
 import { useApp } from '../store';
-import { Countdown, TeamBadge } from '../components/club';
+import { Countdown, NavButtons, StaffCard, TeamBadge } from '../components/club';
 import { TeamBanner } from '../components/ui';
 import { go } from '../router';
 import { Avatar, Icon, RatingBadge, Stat } from '../components/ui';
@@ -63,6 +63,7 @@ export default function Dashboard() {
   return (
     <div className="page">
       <TeamBanner />
+      <StaffCard state={state} />
       <div className="hello">
         <h1>שלום, צוות 👋</h1>
         <p className="muted">{state.settings.league}</p>
@@ -90,6 +91,7 @@ export default function Dashboard() {
           <Countdown date={nextMatch.date} time={nextMatch.time} />
           <div className="hero-bottom">
             <span>{nextMatch.match.venue}</span>
+            <NavButtons place={nextMatch.match.venue} link={nextMatch.match.mapUrl} compact />
           </div>
           <div className="hero-steps">
             <Step done={rsvpCounts(state, nextMatch.id).yes > 0} label={`אישורי הגעה ${rsvpCounts(state, nextMatch.id).yes}`} />

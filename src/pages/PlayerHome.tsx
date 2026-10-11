@@ -1,5 +1,5 @@
 import { useApp } from '../store';
-import { Countdown, TeamBadge } from '../components/club';
+import { Countdown, NavButtons, StaffCard, TeamBadge } from '../components/club';
 import { TeamBanner } from '../components/ui';
 import { go } from '../router';
 import { Avatar, Icon, RatingBadge, Stat } from '../components/ui';
@@ -27,6 +27,7 @@ export default function PlayerHome({ playerId }: { playerId: string }) {
   return (
     <div className="page">
       <TeamBanner />
+      <StaffCard state={state} />
       <div className="player-hello">
         <Avatar player={me} size={56} />
         <div>
@@ -52,6 +53,7 @@ export default function PlayerHome({ playerId }: { playerId: string }) {
             {relDay(next.date)} · {hhmm(next.time)} · {next.kind === 'match' ? next.match.venue : next.event.location}
           </p>
           {next.kind === 'event' && next.event.notes && <p className="pre small">{next.event.notes}</p>}
+          <NavButtons place={next.kind === 'match' ? next.match.venue : next.event.location} link={next.kind === 'match' ? next.match.mapUrl : next.event.mapUrl} />
           <RsvpButtons itemId={next.id} playerId={me.id} big />
         </section>
       )}

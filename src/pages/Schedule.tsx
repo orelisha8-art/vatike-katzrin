@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { update, useApp } from '../store';
 import { go } from '../router';
 import { Avatar, confirmDelete, Empty, Fab, Field, Icon, Modal, PageHead, Segmented } from '../components/ui';
+import { NavButtons } from '../components/club';
 import { EVENT_TYPES, RsvpButtons, RsvpMini, scheduleItems, setRsvp, type ScheduleItem } from '../components/cards';
 import type { EventType, Rsvp, TeamEvent } from '../types';
 import { addDays, byNumber, fullDate, relDay, shareWhatsApp, todayISO, uid , hhmm } from '../utils';
@@ -82,6 +83,7 @@ export default function Schedule({ manager, meId }: { manager: boolean; meId?: s
                     {!isMatch && i.event.notes && <small className="sched-notes">{i.event.notes}</small>}
                   </span>
                   {attended !== null && tab === 'past' ? <span className="att-chip">נכחו {attended}</span> : <RsvpMini itemId={i.id} state={state} />}
+                  {i.date >= t && <NavButtons place={place} link={isMatch ? i.match.mapUrl : i.event.mapUrl} compact />}
                 </button>
                 {!manager && meId && i.date >= t && <RsvpButtons itemId={i.id} playerId={meId} />}
               </div>
@@ -158,6 +160,7 @@ function EventDetail({ ev, onClose, onEdit }: { ev: TeamEvent; onClose: () => vo
         {fullDate(ev.date)} · {hhmm(ev.time)}
         {ev.location ? ' · ' + ev.location : ''}
       </p>
+      <NavButtons place={ev.location} link={ev.mapUrl} />
       {ev.notes && <p className="pre">{ev.notes}</p>}
       <Segmented
         value={mode}
@@ -269,6 +272,9 @@ function EventForm({ event, onClose }: { event?: TeamEvent; onClose: () => void 
       </div>
       <Field label="מיקום">
         <input className="input" value={e.location ?? ''} onChange={(ev) => set('location', ev.target.value)} />
+      </Field>
+      <Field label="קישור למיקום (לא חובה)" hint="קישור 'שיתוף' מוויז או מגוגל מפות">
+        <input className="input" dir="ltr" inputMode="url" value={e.mapUrl ?? ''} onChange={(ev) => set('mapUrl', ev.target.value.trim() || undefined)} placeholder="https://maps.app.goo.gl/…" />
       </Field>
       <Field label="הערות / תוכנית האימון">
         <textarea className="input" rows={3} value={e.notes ?? ''} onChange={(ev) => set('notes', ev.target.value)} placeholder="למשל: להביא נעלי קט־רגל, דגש על כדורים נייחים" />

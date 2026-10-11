@@ -191,6 +191,7 @@ export default function Finance() {
 }
 
 function StaffForm({ staff, onClose }: { staff?: Staff; onClose: () => void }) {
+  const players = useApp().players.filter((p) => p.active);
   const [x, setX] = useState<Staff>(() => staff ?? { id: uid(), name: '', role: 'עוזר מאמן', salary: 0, salaryType: 'חודשי' });
   const save = () => {
     if (!x.name.trim()) return alert('שם?');
@@ -246,6 +247,19 @@ function StaffForm({ staff, onClose }: { staff?: Staff; onClose: () => void }) {
           <input className="input" inputMode="numeric" value={x.salary || ''} onChange={(e) => setX({ ...x, salary: Number(e.target.value.replace(/\D/g, '')) || 0 })} />
         </Field>
       </div>
+      <Field label="קשור לשחקן בסגל (לא חובה)" hint="אם איש הצוות הוא גם שחקן — התמונה תילקח מהפרופיל שלו">
+        <select className="input" value={x.playerId ?? ''} onChange={(e) => setX({ ...x, playerId: e.target.value || undefined })}>
+          <option value="">—</option>
+          {players.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <label className="check" style={{ marginBottom: 12 }}>
+        <input type="checkbox" checked={x.showOnHome !== false} onChange={(e) => setX({ ...x, showOnHome: e.target.checked })} /> מוצג ב"צוות המקצועי" בדף הבית (שם ותפקיד בלבד, בלי שכר)
+      </label>
       <Field label="סוג תשלום">
         <Segmented
           value={x.salaryType}

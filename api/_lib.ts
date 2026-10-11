@@ -122,7 +122,7 @@ export async function clearFails(req: VercelRequest) {
 /** מה ששחקן רואה: בלי כספים, משכורות, הערות צוות, סקאוטינג ומשימות הנהלה */
 export function forPlayers(s: AppState): AppState {
   const c = structuredClone(s);
-  c.staff = [];
+  c.staff = c.staff.filter((s) => s.showOnHome !== false).map(({ id, name, role, photo, playerId, phone }) => ({ id, name, role, photo, playerId, phone, salary: 0, salaryType: 'חודשי' as const }));
   c.transactions = [];
   c.prospects = [];
   c.tdTasks = [];

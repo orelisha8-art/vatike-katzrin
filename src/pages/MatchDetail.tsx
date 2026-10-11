@@ -4,7 +4,7 @@ import { back, go } from '../router';
 import { Avatar, confirmDelete, Empty, Field, Icon, Modal, RatingBadge, Segmented } from '../components/ui';
 import { RsvpButtons, rsvpCounts, setRsvp } from '../components/cards';
 import Pitch from '../components/Pitch';
-import { Countdown, Scorers, TeamBadge } from '../components/club';
+import { Countdown, NavButtons, Scorers, TeamBadge } from '../components/club';
 import { MatchForm } from './Matches';
 import type { AppState, Match, MatchEvent, MatchEventType, Player, Rsvp } from '../types';
 import {
@@ -152,7 +152,7 @@ function InfoTab({ m, manager, meId, state }: { m: Match; manager: boolean; meId
 
   const reminder = () =>
     shareWhatsApp(
-      `⚽ ${state.settings.teamName} נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${hhmm(m.time)}\n📍 ${m.venue || ''}\n🏆 ${m.competition}${m.notes ? '\n\n' + m.notes : ''}\n\nנא לאשר הגעה באפליקציה 🙏`,
+      `⚽ ${state.settings.teamName} נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${hhmm(m.time)}\n📍 ${m.venue || ''}${m.mapUrl ? '\n🗺️ ' + m.mapUrl : ''}\n🏆 ${m.competition}${m.notes ? '\n\n' + m.notes : ''}\n\nנא לאשר הגעה באפליקציה 🙏`,
     );
 
   return (
@@ -176,6 +176,7 @@ function InfoTab({ m, manager, meId, state }: { m: Match; manager: boolean; meId
           <dt>איפה</dt>
           <dd>
             {m.venue || '—'} ({m.home ? 'בית' : 'חוץ'})
+            <NavButtons place={m.venue} link={m.mapUrl} />
           </dd>
           <dt>מסגרת</dt>
           <dd>{m.competition}</dd>
@@ -280,7 +281,7 @@ function SquadTab({ m, state }: { m: Match; state: AppState }) {
       .sort((a, b) => byNumber(a!, b!))
       .map((p) => `${p!.number ?? ''} ${p!.name}`.trim())
       .join('\n');
-    shareWhatsApp(`📋 הסגל למשחק נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${hhmm(m.time)}\n📍 ${m.venue || ''}\n\n${list}${m.notes ? '\n\n' + m.notes : ''}`);
+    shareWhatsApp(`📋 הסגל למשחק נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${hhmm(m.time)}\n📍 ${m.venue || ''}${m.mapUrl ? '\n🗺️ ' + m.mapUrl : ''}\n\n${list}${m.notes ? '\n\n' + m.notes : ''}`);
   };
 
   return (
@@ -388,7 +389,7 @@ function LineupTab({ m, manager, state }: { m: Match; manager: boolean; state: A
     });
     const benchText = benchIds.map((id) => nameOf(state, id)).join(', ');
     shareWhatsApp(
-      `⚽ ההרכב נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${hhmm(m.time)}\n📍 ${m.venue || ''}\n\nמערך ${m.formation}\n${lines.filter(Boolean).join('\n')}${benchText ? `\n\nספסל: ${benchText}` : ''}\n\nבהצלחה! 💪`,
+      `⚽ ההרכב נגד ${m.opponent}\n📅 ${fullDate(m.date)} · ${hhmm(m.time)}\n📍 ${m.venue || ''}${m.mapUrl ? '\n🗺️ ' + m.mapUrl : ''}\n\nמערך ${m.formation}\n${lines.filter(Boolean).join('\n')}${benchText ? `\n\nספסל: ${benchText}` : ''}\n\nבהצלחה! 💪`,
     );
   };
 
