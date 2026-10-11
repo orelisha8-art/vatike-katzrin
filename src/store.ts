@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import type { AppState, Rsvp, Session } from './types';
 import { createSeed } from './seed';
 
@@ -44,6 +44,7 @@ export function setSession(s: Session) {
   } catch {
     /* מצב גלישה פרטית */
   }
+  gallery = null;
   if (mode === 'remote') {
     state = null;
     rev = 0;
@@ -296,4 +297,65 @@ export async function updateProfile(playerId: string, patch: ProfilePatch) {
   if (mode === 'local') return persistLocal();
   const body = { ...patch, ...('photo' in patch ? { photo: patch.photo ?? null } : {}) };
   await api('profile', { method: 'POST', body: JSON.stringify({ playerId, patch: body }) });
+}
+
+// ---------- גלריה (נטענת בנפרד מהנתונים — לא מכבידה על הסנכרון) ----------
+export type Photo = { id: string; src: string; caption: string };
+const GALLERY_KEY = 'team-app-gallery-v1';
+let gallery: Photo[] | null = null;
+let galleryLoading = false;
+
+const saveLocalGallery = () => {
+  try {
+    localStorage.setItem(GALLERY_KEY, JSON.stringify(gallery ?? []));
+  } catch {
+    alert('אין מספיק מקום במכשיר לתמונות נוספות');
+  }
+};
+
+export async function loadGallery(force = false) {
+  if (galleryLoading || (gallery && !force)) return;
+  galleryLoading = true;
+  try {
+    if (mode === 'local') gallery = JSON.parse(localStorage.getItem(GALLERY_KEY) || '[]');
+    else gallery = (await api<{ photos: Photo[] }>('gallery')).photos;
+  } catch {
+    gallery = gallery ?? [];
+  }
+  galleryLoading = false;
+  emit();
+}
+
+export const useGallery = () => {
+  const g = useSyncExternalStore(subscribe, () => gallery);
+  const m = useSyncExternalStore(subscribe, () => mode);
+  useEffect(() => {
+    if (g === null && m !== 'loading' && (m === 'local' || session?.token)) void loadGallery();
+  }, [g, m]);
+  return g ?? [];
+};
+
+export async function addPhoto(src: string, caption = '') {
+  if (mode === 'local') {
+    gallery = [{ id: Math.random().toString(36).slice(2, 12), src, caption }, ...(gallery ?? [])];
+    saveLocalGallery();
+  } else {
+    const { id } = await api<{ id: string }>('gallery', { method: 'POST', body: JSON.stringify({ src, caption }) });
+    gallery = [{ id, src, caption }, ...(gallery ?? [])];
+  }
+  emit();
+}
+
+export async function captionPhoto(id: string, caption: string) {
+  gallery = (gallery ?? []).map((p) => (p.id === id ? { ...p, caption } : p));
+  emit();
+  if (mode === 'local') saveLocalGallery();
+  else await api('gallery', { method: 'PATCH', body: JSON.stringify({ id, caption }) });
+}
+
+export async function removePhoto(id: string) {
+  gallery = (gallery ?? []).filter((p) => p.id !== id);
+  emit();
+  if (mode === 'local') saveLocalGallery();
+  else await api('gallery?id=' + encodeURIComponent(id), { method: 'DELETE' });
 }

@@ -1,6 +1,6 @@
 import { useApp } from '../store';
 import { Countdown, NavButtons, StaffCard, TeamBadge } from '../components/club';
-import { TeamBanner } from '../components/ui';
+import { HomeCarousel } from './Gallery';
 import { go } from '../router';
 import { Avatar, Icon, RatingBadge, Stat } from '../components/ui';
 import { EVENT_TYPES, MatchCard, RsvpButtons, upcomingItems } from '../components/cards';
@@ -26,7 +26,7 @@ export default function PlayerHome({ playerId }: { playerId: string }) {
 
   return (
     <div className="page">
-      <TeamBanner />
+      <HomeCarousel />
       <StaffCard state={state} />
       <div className="player-hello">
         <Avatar player={me} size={56} />

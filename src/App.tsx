@@ -16,6 +16,7 @@ import SettingsPage from './pages/Settings';
 import Stats from './pages/Stats';
 import More from './pages/More';
 import PlayerHome from './pages/PlayerHome';
+import Gallery from './pages/Gallery';
 
 /** צבע הקבוצה + צבע טקסט קריא עליו (שחור על צבע בהיר, לבן על כהה) */
 function applyBrand(color: string) {
@@ -40,6 +41,7 @@ const MANAGER_NAV: NavItem[] = [
 ];
 const MANAGER_EXTRA: NavItem[] = [
   { path: 'stats', label: 'סטטיסטיקה', icon: 'trophy' },
+  { path: 'gallery', label: 'גלריה', icon: 'camera' },
   { path: 'equipment', label: 'ציוד ואחזקה', icon: 'box' },
   { path: 'finance', label: 'כספים ומשכורות', icon: 'wallet' },
   { path: 'td', label: 'מנהל טכני', icon: 'clipboard' },
@@ -127,6 +129,9 @@ function TeamApp() {
       break;
     case 'stats':
       page = <Stats />;
+      break;
+    case 'gallery':
+      page = <Gallery manager={isManager} />;
       break;
     case 'me':
       page = <PlayerProfile id={sessionPlayer!.id} manager={false} meId={sessionPlayer!.id} />;
