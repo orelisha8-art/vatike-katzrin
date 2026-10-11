@@ -29,10 +29,15 @@ import {
 
 type Tab = 'info' | 'squad' | 'lineup' | 'live' | 'ratings';
 
-export default function MatchDetail({ id, manager, meId }: { id: string; manager: boolean; meId?: string }) {
+export default function MatchDetail({ id, manager, meId, initialTab }: { id: string; manager: boolean; meId?: string; initialTab?: string }) {
   const state = useApp();
   const m = state.matches.find((x) => x.id === id);
-  const [tab, setTab] = useState<Tab>(() => (m?.status === 'live' && manager ? 'live' : m?.status === 'finished' ? 'ratings' : 'info'));
+  const [tab, setTabState] = useState<Tab>(() => (initialTab as Tab) || (m?.status === 'live' && manager ? 'live' : m?.status === 'finished' ? 'ratings' : 'info'));
+  // הלשונית נשמרת בכתובת — רענון משאיר אותך באותו מקום
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    history.replaceState(null, '', '#/matches/' + id + '/' + t);
+  };
   const [editing, setEditing] = useState(false);
   const [, tick] = useState(0);
 

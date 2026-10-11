@@ -107,7 +107,7 @@ function TeamApp() {
 
   const isManager = session.role === 'manager';
   const nav = isManager ? MANAGER_NAV : PLAYER_NAV;
-  const [section, id] = route;
+  const [section, id, sub] = route;
   const active = section ?? '';
   const activeTab = isManager && MANAGER_EXTRA.some((n) => n.path === active) ? 'more' : active;
 
@@ -120,7 +120,7 @@ function TeamApp() {
       page = id ? <PlayerProfile id={id} manager={isManager} meId={sessionPlayer?.id} /> : <Squad manager={isManager} />;
       break;
     case 'matches':
-      page = id ? <MatchDetail id={id} manager={isManager} meId={sessionPlayer?.id} /> : <Matches manager={isManager} />;
+      page = id ? <MatchDetail key={id} id={id} manager={isManager} meId={sessionPlayer?.id} initialTab={sub} /> : <Matches manager={isManager} />;
       break;
     case 'schedule':
       page = <Schedule manager={isManager} meId={sessionPlayer?.id} />;
