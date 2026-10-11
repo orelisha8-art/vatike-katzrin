@@ -17,7 +17,7 @@ export default function PlayerProfile({ id, manager }: { id: string; manager: bo
   const medDays = p.medicalExpiry ? daysBetween(todayISO(), p.medicalExpiry) : null;
 
   const log = state.matches
-    .filter((m) => m.status !== 'scheduled' && (m.slots.includes(p.id) || m.events.some((e) => e.inId === p.id)))
+    .filter((m) => m.status !== 'scheduled' && (m.slots.includes(p.id) || m.events.some((e) => e.inId === p.id) || (!m.slots.some(Boolean) && m.squad.includes(p.id))))
     .sort((a, b) => b.date.localeCompare(a.date));
 
   const remove = () => {

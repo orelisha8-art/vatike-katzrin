@@ -81,7 +81,7 @@ export default function MatchDetail({ id, manager, meId }: { id: string; manager
         <div className="sb-team">{m.home ? team : m.opponent}</div>
         <div className="sb-center">
           {m.status === 'scheduled' ? (
-            <div className="sb-time">{m.time}</div>
+            <div className="sb-time">{m.time || "נגד"}</div>
           ) : (
             <div className="sb-score">{m.home ? `${s.us} - ${s.them}` : `${s.them} - ${s.us}`}</div>
           )}
@@ -493,11 +493,13 @@ const EVENT_META: Record<MatchEventType, { emoji: string; label: string }> = {
   sub: { emoji: '🔁', label: 'חילוף' },
   yellow: { emoji: '🟨', label: 'צהוב' },
   red: { emoji: '🟥', label: 'אדום' },
+  note: { emoji: '📝', label: 'אירוע אחר' },
 };
 
 function LiveTab({ m, manager, state }: { m: Match; manager: boolean; state: AppState }) {
   const [entry, setEntry] = useState<MatchEventType | null>(null);
-  const events = [...m.events].sort((a, b) => b.minute - a.minute);
+  // דקה 0 = לא ידועה; בשוויון — לפי סדר ההזנה
+  const events = m.events.map((e, i) => ({ e, i })).sort((a, b) => b.e.minute - a.e.minute || b.i - a.i).map((x) => x.e);
   const half = m.duration / 2;
 
   const kickoff = () =>
@@ -565,12 +567,12 @@ function LiveTab({ m, manager, state }: { m: Match; manager: boolean; state: App
         ) : (
           <ol className="timeline">
             {events.map((e, i) => {
-              const showHalf = i > 0 && events[i - 1].minute > half && e.minute <= half;
+              const showHalf = i > 0 && e.minute > 0 && events[i - 1].minute > half && e.minute <= half;
               return (
                 <li key={e.id}>
                   {showHalf && <div className="timeline-half">מחצית</div>}
                   <div className={'tl-row ' + (e.type === 'opp_goal' ? 'them' : 'us')}>
-                    <span className="tl-min">{e.minute}׳</span>
+                    <span className="tl-min">{e.minute ? e.minute + '׳' : '—'}</span>
                     <span className="tl-emoji">{EVENT_META[e.type].emoji}</span>
                     <span className="tl-text">
                       <EventText e={e} state={state} />
@@ -605,6 +607,13 @@ function EventText({ e, state }: { e: MatchEvent; state: AppState }) {
       );
     case 'opp_goal':
       return <strong>גול ליריבה</strong>;
+    case 'note':
+      return (
+        <>
+          {e.playerId && <strong>{nameOf(state, e.playerId)} · </strong>}
+          <span className="pre">{e.text}</span>
+        </>
+      );
     case 'sub':
       return (
         <>
@@ -620,6 +629,8 @@ function EventEntry({ m, type, state, onClose }: { m: Match; type: MatchEventTyp
   const [minute, setMinute] = useState(() => (m.status === 'live' ? Math.min(liveMinute(m), m.duration + 10) : Math.round(m.duration / 2)));
   const [step, setStep] = useState(0);
   const [ev, setEv] = useState<Partial<MatchEvent>>({});
+  const [unknown, setUnknown] = useState(false);
+  const [text, setText] = useState('');
 
   const asPlayers = (ids: string[]) => ids.map((id) => playerById(state, id)!).filter(Boolean).sort(byNumber);
   const pitchIds = m.slots.some(Boolean) ? onPitch(m) : m.squad;
@@ -628,14 +639,26 @@ function EventEntry({ m, type, state, onClose }: { m: Match; type: MatchEventTyp
   const allPool = m.squad.length ? m.squad : state.players.filter((p) => p.active).map((p) => p.id);
 
   const save = (final: Partial<MatchEvent>) => {
-    patch(m.id, (x) => x.events.push({ id: uid(), minute, type, ...final }));
+    patch(m.id, (x) => x.events.push({ id: uid(), minute: unknown ? 0 : minute, type, ...final }));
     onClose();
   };
 
   let title = EVENT_META[type].label;
   let body: ReactNode = null;
 
-  if (type === 'opp_goal') {
+  if (type === 'note') {
+    title = '📝 אירוע במשחק';
+    body = (
+      <>
+        <textarea className="input" rows={3} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="למשל: החמצת פנדל, פציעה, הצלה גדולה, שינוי מערך…" />
+        <p className="muted small">שחקן קשור (לא חובה):</p>
+        <PlayerPickGrid players={asPlayers(allPool)} highlight={ev.playerId ? [ev.playerId] : []} onPick={(id) => setEv({ playerId: ev.playerId === id ? undefined : id })} note={(p) => (p.id === ev.playerId ? 'נבחר' : '')} />
+        <button className="btn btn-primary full btn-lg" disabled={!text.trim()} onClick={() => save({ ...ev, text: text.trim() })}>
+          שמירה
+        </button>
+      </>
+    );
+  } else if (type === 'opp_goal') {
     body = (
       <button className="btn btn-primary full btn-lg" onClick={() => save({})}>
         רישום גול ליריבה
@@ -688,6 +711,9 @@ function EventEntry({ m, type, state, onClose }: { m: Match; type: MatchEventTyp
         <button className="icon-btn" onClick={() => setMinute(minute + 1)} aria-label="יותר">
           +
         </button>
+        <label className="check small">
+          <input type="checkbox" checked={unknown} onChange={(e) => setUnknown(e.target.checked)} /> לא זוכר דקה
+        </label>
       </div>
       {body}
     </Modal>
@@ -699,13 +725,31 @@ const RATING_CHOICES = [4, 5, 6, 7, 8, 9, 10];
 
 function RatingsTab({ m, manager, state }: { m: Match; manager: boolean; state: AppState }) {
   const [half, setHalf] = useState(false);
-  const playedIds = [...new Set([...starters(m), ...m.events.filter((e) => e.type === 'sub' && e.inId).map((e) => e.inId!)])];
+  const [adding, setAdding] = useState(false);
+  const involved = m.events.flatMap((e) => [e.playerId, e.assistId, e.inId, e.outId]).filter(Boolean) as string[];
+  const playedIds = [...new Set([...starters(m), ...m.events.filter((e) => e.type === 'sub' && e.inId).map((e) => e.inId!), ...(m.slots.some(Boolean) ? [] : m.squad), ...involved, ...Object.keys(m.ratings)])];
   const players = playedIds.map((id) => playerById(state, id)!).filter(Boolean);
   const startersSet = new Set(starters(m));
   players.sort((a, b) => Number(startersSet.has(b.id)) - Number(startersSet.has(a.id)) || byNumber(a, b));
 
+  const addPool = state.players.filter((p) => p.active && !playedIds.includes(p.id)).sort(byNumber);
+  const addPlayer = (pid: string) => patch(m.id, (x) => void (!x.squad.includes(pid) && x.squad.push(pid)));
+  const adder = manager && (
+    <>
+      <button className="btn full" onClick={() => setAdding(true)}>
+        <Icon name="plus" size={16} /> הוספת שחקן ששיחק
+      </button>
+      {adding && (
+        <Modal open onClose={() => setAdding(false)} title="מי עוד שיחק?">
+          <PlayerPickGrid players={addPool} onPick={(id) => addPlayer(id)} note={() => ''} />
+          <button className="btn btn-primary full" onClick={() => setAdding(false)}>סיום</button>
+        </Modal>
+      )}
+    </>
+  );
+
   if (!players.length)
-    return <Empty title="אין שחקנים לדרג" text={manager ? 'הגדר הרכב ורשום חילופים כדי לדרג את מי ששיחק' : 'הציונים עוד לא פורסמו'} />;
+    return manager ? <div className="stack"><Empty title="עוד לא נבחרו שחקנים לדירוג" text="הוסיפו את מי ששיחק במשחק ודרגו אותו" />{adder}</div> : <Empty title="הציונים עוד לא פורסמו" />;
 
   const vals = Object.values(m.ratings);
   const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
@@ -769,6 +813,7 @@ function RatingsTab({ m, manager, state }: { m: Match; manager: boolean; state: 
           );
         })}
       </div>
+      {adder}
       {manager && (
         <section className="card">
           <h2>סיכום המאמן</h2>

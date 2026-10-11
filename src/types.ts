@@ -21,7 +21,7 @@ export interface Player {
   active: boolean;
 }
 
-export type MatchEventType = 'goal' | 'opp_goal' | 'yellow' | 'red' | 'sub';
+export type MatchEventType = 'goal' | 'opp_goal' | 'yellow' | 'red' | 'sub' | 'note';
 
 export interface MatchEvent {
   id: string;
@@ -32,6 +32,7 @@ export interface MatchEvent {
   penalty?: boolean;
   outId?: string; // חילוף - יוצא
   inId?: string; // חילוף - נכנס
+  text?: string; // אירוע חופשי (החמצה, פציעה, רגע מפתח…)
 }
 
 export interface Match {

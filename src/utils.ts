@@ -239,7 +239,8 @@ export const playerStats = (state: AppState, pid: string): PlayerStats => {
   for (const m of played) {
     const mins = minutesPlayed(m, pid);
     const subIn = m.events.some((e) => e.type === 'sub' && e.inId === pid);
-    if (m.slots.includes(pid) || subIn) s.apps++;
+    const noLineup = !m.slots.some(Boolean);
+    if (m.slots.includes(pid) || subIn || (noLineup && m.squad.includes(pid))) s.apps++;
     if (m.slots.includes(pid)) s.starts++;
     s.minutes += mins;
     for (const e of m.events) {
