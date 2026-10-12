@@ -149,6 +149,7 @@ export function HomeCarousel() {
       <div className="car-track" ref={track} onScroll={(e) => setI(Math.round(Math.abs(e.currentTarget.scrollLeft) / e.currentTarget.clientWidth))}>
         {slides.map((s) => (
           <div key={s.id} className="car-slide">
+            <img className="car-bg" src={s.src} alt="" aria-hidden="true" />
             <img src={s.src} alt={s.caption || 'תמונת הקבוצה'} />
           </div>
         ))}
