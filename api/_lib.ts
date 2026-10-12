@@ -27,6 +27,8 @@ interface AuthDoc {
   managerPin: string;
   teamCode: string;
   v: number;
+  /** טביעת הקודים ההתחלתיים מ-Vercel. כשמחליפים אותם שם — הקודים מתאפסים אליהם (שחזור קוד שנשכח) */
+  seed?: string;
 }
 interface StateDoc {
   _id: 'state';
@@ -43,15 +45,29 @@ export const docs = async () => (await db()).collection<AuthDoc | StateDoc | Rsv
 export async function getAuth(): Promise<AuthDoc> {
   const c = await docs();
   const found = (await c.findOne({ _id: 'auth' })) as AuthDoc | null;
-  if (found) return found;
+  const seed = initialSeed();
+  if (found && (!seed || found.seed === seed)) return found;
+  if (found && seed) {
+    // הקודים ההתחלתיים הוחלפו ב-Vercel — מאפסים אליהם ומנתקים את כולם
+    const reset = { managerPin: process.env.INITIAL_MANAGER_PIN!, teamCode: process.env.INITIAL_TEAM_CODE!, v: found.v + 1, seed };
+    await c.updateOne({ _id: 'auth', seed: found.seed }, { $set: reset });
+    return ((await c.findOne({ _id: 'auth' })) as AuthDoc) ?? { ...found, ...reset };
+  }
   const fresh: AuthDoc = {
     _id: 'auth',
     managerPin: process.env.INITIAL_MANAGER_PIN || randomDigits(6),
     teamCode: process.env.INITIAL_TEAM_CODE || randomDigits(6),
     v: 1,
+    seed,
   };
   await c.updateOne({ _id: 'auth' }, { $setOnInsert: fresh }, { upsert: true });
   return ((await c.findOne({ _id: 'auth' })) as AuthDoc) ?? fresh;
+}
+
+function initialSeed() {
+  const m = process.env.INITIAL_MANAGER_PIN, t = process.env.INITIAL_TEAM_CODE;
+  if (!m || !t) return undefined;
+  return createHmac('sha256', secret()).update(`${m}.${t}`).digest('base64url');
 }
 
 const randomDigits = (n: number) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');
